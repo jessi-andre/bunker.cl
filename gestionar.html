@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestionar suscripción | Bunker Ñuñoa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="section">
+      <div class="container legal-page">
+        <h1>Gestionar suscripción</h1>
+        <p>Ingresá tu email de inscripción para abrir el portal de cliente.</p>
+        <form id="portal-form" class="portal-form">
+          <label for="portal-email">Email</label>
+          <input id="portal-email" type="email" required placeholder="tuemail@dominio.com" />
+          <button type="submit" class="btn btn-accent">Abrir portal</button>
+        </form>
+        <p id="portal-error" class="portal-error" hidden></p>
+        <a class="btn btn-ghost" href="index.html#planes">Volver a planes</a>
+      </div>
+    </main>
+
+    <script>
+      const form = document.getElementById("portal-form");
+      const emailInput = document.getElementById("portal-email");
+      const errorEl = document.getElementById("portal-error");
+
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorEl.hidden = true;
+
+        if (!emailInput.checkValidity()) {
+          emailInput.reportValidity();
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/create-portal-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailInput.value.trim() }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "No pudimos abrir el portal");
+          window.location.href = data.url;
+        } catch (error) {
+          errorEl.textContent = error.message || "No pudimos abrir el portal";
+          errorEl.hidden = false;
+        }
+      });
+    </script>
+  </body>
+</html>

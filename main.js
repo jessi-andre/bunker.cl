@@ -1,9 +1,27 @@
-// URL de checkout segura (placeholder)
-const CHECKOUT_URL = "CHECKOUT_URL_PLACEHOLDER";
-
 const MAPS = {
   google: "https://www.google.com/maps/search/?api=1&query=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
   apple: "http://maps.apple.com/?q=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
+};
+
+const PLAN_CATALOG = {
+  starter: {
+    id: "starter",
+    name: "Starter",
+    price: "$39.990 CLP / mes",
+    includes: ["2 sesiones semanales", "Evaluación inicial", "Soporte por WhatsApp"],
+  },
+  pro: {
+    id: "pro",
+    name: "Pro",
+    price: "$59.990 CLP / mes",
+    includes: ["3 sesiones semanales", "Plan personalizado", "Seguimiento semanal"],
+  },
+  elite: {
+    id: "elite",
+    name: "Elite",
+    price: "$79.990 CLP / mes",
+    includes: ["4 sesiones semanales", "Seguimiento integral", "Revisión de progreso"],
+  },
 };
 
 const header = document.querySelector(".site-header");
@@ -19,6 +37,7 @@ const modalBackdrop = modal?.querySelector("[data-close-modal]");
 const modalPlanName = document.getElementById("modal-plan-name");
 const modalPlanPrice = document.getElementById("modal-plan-price");
 const modalPlanIncludes = document.getElementById("modal-plan-includes");
+const checkoutEmailInput = document.getElementById("checkout-email");
 const faqTriggers = document.querySelectorAll(".faq-trigger");
 const contactForm = document.getElementById("contact-form");
 const toast = document.getElementById("toast");
@@ -31,24 +50,33 @@ const ctaMaps = document.querySelectorAll(".js-cta-maps");
 const ctaPhone = document.querySelectorAll(".js-cta-phone");
 
 let pendingCheckoutUrl = "";
+let selectedPlanId = "";
 let lastScrollY = window.scrollY;
 
 const getPlanDetails = (button) => {
+  const planId = button.getAttribute("data-plan")?.trim();
+  if (!planId) return null;
+
+  const fromCatalog = PLAN_CATALOG[planId];
+  if (fromCatalog) return fromCatalog;
+
   const card = button.closest(".plan-card");
   if (!card) return null;
 
   const planName = card.querySelector(".plan-name")?.textContent?.trim() || "Plan";
   const planPrice = card.querySelector(".price")?.textContent?.replace(/\s+/g, " ")?.trim() || "";
-  const includes = Array.from(card.querySelectorAll("ul li")).map((item) => item.textContent.trim()).filter(Boolean);
+  const includes = Array.from(card.querySelectorAll("ul li"))
+    .map((item) => item.textContent.trim())
+    .filter(Boolean);
 
-  return { planName, planPrice, includes };
+  return { id: planId, name: planName, price: planPrice, includes };
 };
 
 const renderPlanSummary = (details) => {
   if (!details || !modalPlanName || !modalPlanPrice || !modalPlanIncludes) return;
 
-  modalPlanName.textContent = details.planName;
-  modalPlanPrice.textContent = details.planPrice;
+  modalPlanName.textContent = details.name;
+  modalPlanPrice.textContent = details.price;
   modalPlanIncludes.innerHTML = "";
 
   details.includes.forEach((item) => {
@@ -66,13 +94,38 @@ const isIOS = () => {
 };
 
 const trackEvent = (name, params = {}) => {
-  if (typeof window.fbq === "function" && name === "generate_lead") {
-    window.fbq("track", "Lead");
+  if (typeof window.fbq === "function") {
+    if (name === "purchase") {
+      window.fbq("track", "Purchase", params);
+    } else if (name === "begin_checkout") {
+      window.fbq("track", "InitiateCheckout", params);
+    } else if (name === "select_plan") {
+      window.fbq("trackCustom", "SelectPlan", params);
+    } else if (name === "click_whatsapp") {
+      window.fbq("trackCustom", "ClickWhatsApp", params);
+    }
   }
 
   if (typeof window.gtag === "function") {
     window.gtag("event", name, params);
   }
+};
+
+const createCheckoutSession = async ({ planId, email }) => {
+  const response = await fetch("/api/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ planId, email }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error || "No pudimos iniciar el checkout.");
+  }
+
+  return response.json();
 };
 
 const setPrimaryMapsLink = () => {
@@ -142,6 +195,7 @@ const closeModal = () => {
   if (!modal) return;
   modal.hidden = true;
   document.body.style.overflow = "";
+  pendingCheckoutUrl = "";
 };
 
 planButtons.forEach((button) => {
@@ -149,15 +203,37 @@ planButtons.forEach((button) => {
     const details = getPlanDetails(button);
     if (!details) return;
 
-    pendingCheckoutUrl = CHECKOUT_URL;
+    selectedPlanId = details.id;
+    pendingCheckoutUrl = "/api/create-checkout-session";
     renderPlanSummary(details);
+    trackEvent("select_plan", { plan_id: details.id, price: details.price });
     openModal();
   });
 });
 
-modalConfirm?.addEventListener("click", () => {
-  if (!pendingCheckoutUrl) return closeModal();
-  window.location.href = pendingCheckoutUrl;
+modalConfirm?.addEventListener("click", async () => {
+  if (!pendingCheckoutUrl || !selectedPlanId) return closeModal();
+
+  const email = checkoutEmailInput?.value?.trim() || "";
+  if (!checkoutEmailInput?.checkValidity()) {
+    checkoutEmailInput?.reportValidity();
+    return;
+  }
+
+  modalConfirm.disabled = true;
+  modalConfirm.textContent = "Redirigiendo...";
+
+  try {
+    trackEvent("begin_checkout", { plan_id: selectedPlanId, method: "stripe" });
+    const { url } = await createCheckoutSession({ planId: selectedPlanId, email });
+    if (!url) throw new Error("Checkout no disponible.");
+    window.location.href = url;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "No pudimos iniciar el checkout.";
+    showToast(message);
+    modalConfirm.disabled = false;
+    modalConfirm.textContent = "Continuar al checkout seguro";
+  }
 });
 
 modalCancel?.addEventListener("click", closeModal);
@@ -189,6 +265,16 @@ const showToast = (message = "Recibido") => {
   }, 2200);
 };
 
+const trackPurchaseOnThankYou = () => {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id");
+  const alreadyTracked = window.sessionStorage.getItem("purchase_tracked");
+  if (!sessionId || alreadyTracked) return;
+
+  trackEvent("purchase", { session_id: sessionId, currency: "CLP" });
+  window.sessionStorage.setItem("purchase_tracked", "1");
+};
+
 contactForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -206,14 +292,14 @@ contactForm?.addEventListener("submit", (event) => {
 // Tracking CTA principal
 ctaInscribirme.forEach((element) => {
   element.addEventListener("click", () => {
-    trackEvent("generate_lead", { method: "cta_inscribirme" });
+    trackEvent("select_plan", { source: "cta_inscribirme" });
   });
 });
 
 // Tracking WhatsApp
 ctaWhatsapp.forEach((element) => {
   element.addEventListener("click", () => {
-    trackEvent("contact", { method: "whatsapp" });
+    trackEvent("click_whatsapp", { source: "cta" });
   });
 });
 
@@ -266,3 +352,4 @@ toTopButton?.addEventListener("click", () => {
 
 setPrimaryMapsLink();
 handleToTopVisibility();
+trackPurchaseOnThankYou();

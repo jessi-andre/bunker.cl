@@ -8,15 +8,23 @@
       name="description"
       content="Centro en Ñuñoa con entrenamiento personalizado, nutricionista y kinesiología. Cupos mensuales limitados para trabajo personalizado."
     />
-    <link rel="canonical" href="https://example.com/" />
+    <link rel="canonical" href="https://jessi-andre.github.io/bunker.cl/" />
     <meta property="og:title" content="Bunker Ñuñoa | Entrenamiento + Nutrición + Kinesiología" />
     <meta
       property="og:description"
       content="Inscribite y elegí tu plan. Entrenamiento, nutrición y kinesiología según nivel."
     />
-    <meta property="og:image" content="https://example.com/og-image-placeholder.jpg" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://example.com/" />
+    <meta property="og:url" content="https://jessi-andre.github.io/bunker.cl/" />
+    <meta property="og:site_name" content="Bunker Ñuñoa" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bunker Ñuñoa | Entrenamiento + Nutrición + Kinesiología" />
+    <meta name="twitter:description" content="Planes mensuales con seguimiento personalizado en Ñuñoa." />
+    <meta
+      name="twitter:image"
+      content="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80"
+    />
     <link rel="icon" href="favicon.ico" />
 
     <script type="application/ld+json">
@@ -85,6 +93,7 @@
         <nav id="menu" class="main-nav" aria-label="Navegación principal">
           <a href="#planes" data-scroll-to>Planes</a>
           <a href="#servicios" data-scroll-to>Servicios</a>
+          <a href="#como-funciona" data-scroll-to>Cómo funciona</a>
           <a href="#resultados" data-scroll-to>Resultados</a>
           <a href="#faq" data-scroll-to>FAQ</a>
           <a href="#ubicacion" data-scroll-to>Ubicación</a>
@@ -172,6 +181,26 @@
                 <li>Recuperación funcional</li>
                 <li>Prevención de molestias</li>
               </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="como-funciona">
+        <div class="container">
+          <h2>Cómo funciona</h2>
+          <div class="cards-grid steps-grid">
+            <article class="card step-card">
+              <h3>1. Elegís plan</h3>
+              <p>Seleccionás Starter, Pro o Elite según tu objetivo.</p>
+            </article>
+            <article class="card step-card">
+              <h3>2. Activás suscripción</h3>
+              <p>Pagás seguro con Stripe y queda el cobro mensual automático.</p>
+            </article>
+            <article class="card step-card">
+              <h3>3. Empezás tu proceso</h3>
+              <p>Coordinamos evaluación inicial y primer turno por WhatsApp.</p>
             </article>
           </div>
         </div>
@@ -269,6 +298,29 @@
         </div>
       </section>
 
+      <section class="section" id="entrenador">
+        <div class="container">
+          <h2>Quién te entrena</h2>
+          <article class="card coach-card">
+            <img
+              src="https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=600&q=80"
+              alt="Entrenador de Bunker"
+              loading="lazy"
+              decoding="async"
+            />
+            <div>
+              <h3>Equipo BUNKER</h3>
+              <p>Entrenamiento de fuerza y composición corporal con enfoque personalizado.</p>
+              <ul>
+                <li>Preparación física y entrenamiento funcional</li>
+                <li>Trabajo conjunto con nutricionista y kinesiología</li>
+                <li>Seguimiento semanal con métricas de progreso</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section class="section" id="faq">
         <div class="container">
           <h2>FAQ</h2>
@@ -314,7 +366,7 @@
                 <ul>
                   <li>Sí, podés pausar o cancelar con aviso previo.</li>
                   <li>La anticipación permite reorganizar correctamente tu cupo.</li>
-                  <li>Te ayudamos a definir la mejor opción según tu caso.</li>
+                  <li>Si tenés lesión o ajuste horario, adaptamos el plan de trabajo.</li>
                 </ul>
               </div>
             </article>
@@ -394,8 +446,9 @@
         <div class="footer-legal">
           <p class="footer-signature">© 2026 Bunker</p>
           <p class="footer-legal-links">
-            <a href="#" aria-label="Leer términos">Términos</a> ·
-            <a href="#" aria-label="Leer privacidad">Privacidad</a>
+            <a href="terminos.html" aria-label="Leer términos">Términos</a> ·
+            <a href="privacidad.html" aria-label="Leer privacidad">Privacidad</a> ·
+            <a href="gestionar.html" aria-label="Gestionar suscripción">Gestionar plan</a>
           </p>
         </div>
       </div>
@@ -407,16 +460,36 @@
         <h2 id="checkout-modal-title">Revisá tu plan antes de continuar</h2>
         <div class="modal-plan-summary" aria-live="polite">
           <p class="modal-plan-name" id="modal-plan-name">Plan seleccionado</p>
-          <p class="modal-plan-price" id="modal-plan-price">$0 CLP / mes</p>
+          <p class="modal-plan-price" id="modal-plan-price">$39.990 CLP / mes</p>
           <ul id="modal-plan-includes"></ul>
+          <label class="checkout-email-label" for="checkout-email">Email para activar tu suscripción</label>
+          <input
+            id="checkout-email"
+            type="email"
+            placeholder="tuemail@dominio.com"
+            autocomplete="email"
+            required
+          />
           <p>Compromiso mensual.</p>
           <p>La inscripción confirma tu cupo mensual. La cancelación debe solicitarse con anticipación.</p>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" id="modal-cancel" type="button">Cancelar</button>
-          <button class="btn btn-accent" id="modal-confirm" type="button">Continuar al checkout</button>
+          <button class="btn btn-accent" id="modal-confirm" type="button">Continuar al checkout seguro</button>
         </div>
       </div>
+    </div>
+
+    <div class="mobile-sticky-cta" aria-label="Acciones rápidas">
+      <a href="#planes" class="btn btn-ghost" data-scroll-to>Ver planes</a>
+      <a
+        href="https://wa.me/56958090338"
+        class="btn btn-accent js-cta-whatsapp"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        WhatsApp
+      </a>
     </div>
 
     <button class="to-top" id="to-top" aria-label="Volver arriba" type="button">↑</button>

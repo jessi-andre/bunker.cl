@@ -360,6 +360,43 @@ p {
   grid-template-columns: 1fr;
 }
 
+.step-card h3 {
+  margin-bottom: 0.45rem;
+}
+
+.step-card p {
+  margin: 0;
+}
+
+.coach-card {
+  display: grid;
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.coach-card img {
+  width: 100%;
+  max-width: 280px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  object-fit: cover;
+  aspect-ratio: 4 / 5;
+}
+
+.coach-card h3 {
+  margin-bottom: 0.45rem;
+}
+
+.coach-card p {
+  margin-bottom: 0.55rem;
+}
+
+.coach-card ul {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--muted);
+}
+
 .service-card,
 .testimonial-card {
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -549,6 +586,53 @@ p {
   color: var(--muted);
   font-size: 0.96rem;
   line-height: 1.35;
+}
+
+.thanks-steps {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.1rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.legal-page {
+  max-width: 760px;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.legal-page ul {
+  margin: 0 0 var(--space-3);
+  padding-left: 1rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.42rem;
+}
+
+.portal-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 420px;
+}
+
+.portal-form label {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.portal-form input {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+}
+
+.portal-error {
+  color: #b23a3a;
+  margin: 0;
 }
 
 .contact-actions {
@@ -832,6 +916,27 @@ p {
   margin-bottom: var(--space-3);
 }
 
+.checkout-email-label {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+#checkout-email {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--text);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+}
+
+#checkout-email::placeholder {
+  color: #8894a0;
+}
+
 .modal-plan-name {
   color: var(--text);
   font-weight: 700;
@@ -895,6 +1000,29 @@ p {
   display: grid;
 }
 
+.mobile-sticky-cta {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(0.65rem + env(safe-area-inset-bottom));
+  width: min(480px, calc(100% - 24px));
+  background: rgba(243, 245, 244, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  z-index: 70;
+  backdrop-filter: blur(8px);
+}
+
+.mobile-sticky-cta .btn {
+  min-height: 38px;
+  font-size: 0.9rem;
+  padding: 0.48rem 0.7rem;
+}
+
 input,
 textarea,
 button,
@@ -941,6 +1069,10 @@ a:focus-visible {
 
   .footer-legal-links {
     text-align: left;
+  }
+
+  .mobile-sticky-cta {
+    width: calc(100% - 18px);
   }
 }
 
@@ -1006,6 +1138,11 @@ a:focus-visible {
     grid-template-columns: 1.05fr 0.95fr;
   }
 
+  .coach-card {
+    grid-template-columns: 260px 1fr;
+    gap: var(--space-4);
+  }
+
   .social-link {
     width: 2.1rem;
     height: 2.1rem;
@@ -1054,6 +1191,10 @@ a:focus-visible {
     width: fit-content;
     height: auto;
     min-height: 0;
+  }
+
+  .mobile-sticky-cta {
+    display: none;
   }
 }
 
