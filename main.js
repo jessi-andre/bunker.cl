@@ -353,3 +353,85 @@ toTopButton?.addEventListener("click", () => {
 setPrimaryMapsLink();
 handleToTopVisibility();
 trackPurchaseOnThankYou();
+
+(() => {
+  const ENDPOINT = "/api/create-checkout-session.js";
+  const PLAN_IDS = new Set(["starter", "pro", "elite"]);
+  const ctaSelector = ".js-cta-inscribirme";
+
+  const buttons = Array.from(document.querySelectorAll(ctaSelector));
+  const emailInput = document.getElementById("email");
+  const emailError = document.getElementById("emailError");
+
+  if (!buttons.length) return;
+
+  const setButtonsDisabled = (disabled) => {
+    buttons.forEach((button) => {
+      button.disabled = disabled;
+      button.setAttribute("aria-disabled", String(disabled));
+    });
+  };
+
+  const showEmailError = (message) => {
+    if (!emailError) return;
+    emailError.textContent = message || "";
+    emailError.style.display = message ? "block" : "none";
+  };
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  document.addEventListener(
+    "click",
+    async (event) => {
+      const button = event.target.closest(ctaSelector);
+      if (!button) return;
+
+      const planId = (button.getAttribute("data-plan") || "").trim().toLowerCase();
+      if (!PLAN_IDS.has(planId)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
+
+      const email = emailInput?.value?.trim() || "";
+      if (!isValidEmail(email)) {
+        showEmailError("Ingresa un email válido.");
+        emailInput?.focus();
+        return;
+      }
+
+      showEmailError("");
+      setButtonsDisabled(true);
+
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ planId, email }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data?.error || "No se pudo iniciar el checkout.");
+        }
+
+        if (!data?.url) {
+          throw new Error("No se recibió la URL de checkout.");
+        }
+
+        window.location.href = data.url;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Error inesperado al iniciar checkout.";
+        alert(message);
+      } finally {
+        setButtonsDisabled(false);
+      }
+    },
+    true
+  );
+})();
