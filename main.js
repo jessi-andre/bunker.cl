@@ -1,3 +1,8 @@
+window.addEventListener("DOMContentLoaded", () => {
+  const email = document.querySelector("#email");
+  if (email) email.value = "";
+});
+
 const MAPS = {
   google: "https://www.google.com/maps/search/?api=1&query=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
   apple: "http://maps.apple.com/?q=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
