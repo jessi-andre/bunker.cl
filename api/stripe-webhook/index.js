@@ -7,12 +7,12 @@ const {
 
 const { buffer } = require("micro");
 
-const upsertAlumno = async (payload) => {
+const upsertAlumno = async (payload, onConflict = "email") => {
   const supabase = getSupabaseAdmin();
 
   const { error } = await supabase
     .from("alumnos")
-    .upsert(payload, { onConflict: "email" });
+    .upsert(payload, { onConflict });
 
   if (error) throw new Error(error.message);
 };
@@ -45,6 +45,11 @@ module.exports = async (req, res) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+        const company_id = session.metadata?.company_id;
+
+        if (!company_id) {
+          return res.status(200).json({ received: true });
+        }
 
         const email =
           session.customer_details?.email ||
@@ -52,12 +57,13 @@ module.exports = async (req, res) => {
 
         if (email) {
           await upsertAlumno({
+            company_id,
             email: String(email).toLowerCase(),
             stripeCustomerId: session.customer,
             stripeSubscriptionId: session.subscription,
             status: "active",
-            plan: session.metadata?.planId || null,
-          });
+            plan: session.metadata?.plan || session.metadata?.planId || null,
+          }, "company_id,email");
         }
         break;
       }

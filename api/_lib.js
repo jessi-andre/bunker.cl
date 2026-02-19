@@ -20,6 +20,34 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, serviceRole);
 };
 
+const normalizeHost = (host = "") => {
+  return String(host)
+    .toLowerCase()
+    .split(":")[0]
+    .replace(/^www\./, "");
+};
+
+const getCompanyByReqHost = async (req) => {
+  const rawHost = req?.headers?.host;
+  if (!rawHost) return null;
+
+  const host = normalizeHost(rawHost);
+  if (!host) return null;
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("companies")
+    .select("id, name, domain")
+    .eq("domain", host)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || null;
+};
+
 const getBaseUrl = () => {
   return process.env.APP_BASE_URL || "http://localhost:3000";
 };
@@ -47,6 +75,8 @@ module.exports = {
   getRequiredEnv,
   getStripe,
   getSupabaseAdmin,
+  normalizeHost,
+  getCompanyByReqHost,
   getBaseUrl,
   getPriceIdFromPlan,
   normalizePlanFromPriceId,

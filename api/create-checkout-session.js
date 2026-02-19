@@ -1,4 +1,4 @@
-const { getStripe, getSupabaseAdmin } = require("./_lib");
+const { getStripe, getCompanyByReqHost } = require("./_lib");
 
 function getDomainFromReq(req) {
   // 1) Intentamos desde Origin
@@ -31,7 +31,6 @@ module.exports = async (req, res) => {
 
   try {
     const stripe = getStripe();
-    const supabase = getSupabaseAdmin();
 
     // 1) Detectar dominio
     const domain = getDomainFromReq(req);
@@ -39,20 +38,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Could not detect domain" });
     }
 
-    // 2) Buscar company en Supabase
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .select("id, domain, name")
-      .eq("domain", domain)
-      .maybeSingle();
-
-    if (companyError) {
-      return res.status(500).json({ error: companyError.message });
-    }
-
+    // 2) Buscar company por host
+    const company = await getCompanyByReqHost(req);
     if (!company?.id) {
-      return res.status(400).json({
-        error: `No company configured for domain: ${domain}`,
+      return res.status(404).json({
+        error: "Company not found for host",
       });
     }
 
@@ -74,6 +64,9 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: `Unknown planId: ${planId}` });
     }
 
+    const plan = String(planId).toLowerCase();
+    const email = String(customer_email || "").trim().toLowerCase();
+
     // 4) Crear Checkout Session con metadata
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -86,7 +79,18 @@ module.exports = async (req, res) => {
       //  permitir que el usuario escriba su mail:
       customer_email: customer_email || undefined,
 
+      subscription_data: {
+        metadata: {
+          company_id: String(company.id),
+          plan,
+          email,
+        },
+      },
+
       metadata: {
+        company_id: String(company.id),
+        plan,
+        email,
         planId: String(planId),
         companyId: String(company.id), 
         domain: String(domain),
