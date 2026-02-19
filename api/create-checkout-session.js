@@ -53,11 +53,11 @@ module.exports = async (req, res) => {
     }
 
     
-    const priceByPlan = {
-      starter: process.env.STRIPE_PRICE_STARTER,
-      pro: process.env.STRIPE_PRICE_PRO,
-      elite: process.env.STRIPE_PRICE_ELITE,
-    };
+ const priceByPlan = {
+  starter: process.env.STRIPE_PRICE_ID_STARTER,
+  pro: process.env.STRIPE_PRICE_ID_PRO,
+  elite: process.env.STRIPE_PRICE_ID_ELITE,
+};
 
     const price = priceByPlan[String(planId).toLowerCase()];
     if (!price) {
@@ -102,3 +102,8 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: err.message || "Server error" });
   }
 };
+
+
+if (!process.env.STRIPE_PRICE_ID_STARTER || !process.env.STRIPE_PRICE_ID_PRO || !process.env.STRIPE_PRICE_ID_ELITE) {
+  return res.status(500).json({ error: "Missing STRIPE_PRICE_ID_* env vars" });
+}
