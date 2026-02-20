@@ -59,6 +59,47 @@ const normalizePlanFromPriceId = (priceId) => {
   if (priceId === PLAN_PRICE_IDS.elite) return "elite";
   return "unknown";
 };
+const crypto = require("crypto");
+
+function sha256Hex(input) {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+function randomToken(bytes = 32) {
+  return crypto.randomBytes(bytes).toString("base64url");
+}
+
+function cookieSerialize(name, value, opts = {}) {
+  const {
+    httpOnly = true,
+    secure = true,
+    sameSite = "Lax",
+    path = "/",
+    maxAge,
+  } = opts;
+
+  let str = `${name}=${encodeURIComponent(value)}`;
+  if (path) str += `; Path=${path}`;
+  if (httpOnly) str += `; HttpOnly`;
+  if (secure) str += `; Secure`;
+  if (sameSite) str += `; SameSite=${sameSite}`;
+  if (typeof maxAge === "number") str += `; Max-Age=${maxAge}`;
+  return str;
+}
+
+function json(res, status, data, extraHeaders = {}) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  for (const [k, v] of Object.entries(extraHeaders)) res.setHeader(k, v);
+  res.end(JSON.stringify(data));
+}
+
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env var: ${name}`);
+  return v;
+}
+
 
 module.exports = {
   getRequiredEnv,
@@ -69,4 +110,9 @@ module.exports = {
   getBaseUrl,
   getPriceIdFromPlan,
   normalizePlanFromPriceId,
+  sha256Hex,
+  randomToken,
+  cookieSerialize,
+  json,
+  requireEnv,
 };
