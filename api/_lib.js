@@ -89,8 +89,15 @@ function cookieSerialize(name, value, opts = {}) {
 
 function json(res, status, data, extraHeaders = {}) {
   res.statusCode = status;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  for (const [k, v] of Object.entries(extraHeaders)) res.setHeader(k, v);
+
+  for (const [k, v] of Object.entries(extraHeaders || {})) {
+    res.setHeader(k, v);
+  }
+
+  if (!res.getHeader("Content-Type")) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+  }
+
   res.end(JSON.stringify(data));
 }
 
