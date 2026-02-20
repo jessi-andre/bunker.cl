@@ -4,19 +4,22 @@ const { createClient } = require("@supabase/supabase-js");
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     res.statusCode = 405;
-    return res.end("Method not allowed");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: "Method not allowed" }));
   }
 
-  const devSecret = req.headers["x-dev-secret"];
-  if (!devSecret || devSecret !== process.env.BUNKER_SESSION_SECRET) {
+  const secret = req.headers["x-dev-secret"];
+  if (secret !== process.env.BUNKER_SESSION_SECRET) {
     res.statusCode = 401;
-    return res.end("Unauthorized");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: "Unauthorized" }));
   }
 
   const { email, password } = req.body || {};
   if (!email || !password) {
     res.statusCode = 400;
-    return res.end("Missing email or password");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: "Missing email or password" }));
   }
 
   const supabase = createClient(
@@ -24,20 +27,20 @@ module.exports = async (req, res) => {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const rounds = Number(process.env.BCRYPT_ROUNDS || 12);
-  const hash = await bcrypt.hash(password, rounds);
+  const hash = await bcrypt.hash(password, 10);
 
   const { error } = await supabase
-    .from("company_admins")
+    .from("admins")
     .update({ password_hash: hash })
-    .eq("email", email.toLowerCase().trim());
+    .eq("email", String(email).toLowerCase().trim());
 
   if (error) {
     res.statusCode = 500;
-    return res.end(error.message);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: error.message }));
   }
 
   res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ ok: true }));
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  return res.end(JSON.stringify({ ok: true }));
 };
