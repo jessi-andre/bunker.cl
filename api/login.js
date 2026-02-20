@@ -4,19 +4,24 @@ const {
   randomToken,
   sha256Hex,
   cookieSerialize,
-  json,
 } = require("./_lib");
 
 module.exports = async (req, res) => {
+  const sendJson = (status, data) => {
+    res.statusCode = status;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.end(JSON.stringify(data));
+  };
+
   if (req.method !== "POST") {
-    return json(res, 405, { error: "Method not allowed" });
+    return sendJson(405, { error: "Method not allowed" });
   }
 
   try {
     const { email, password } = req.body || {};
 
     if (!email || !password) {
-      return json(res, 400, { error: "Missing email or password" });
+      return sendJson(400, { error: "Missing email or password" });
     }
 
     const supabase = getSupabaseAdmin();
@@ -29,16 +34,16 @@ module.exports = async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return json(res, 500, { error: error.message });
+      return sendJson(500, { error: error.message });
     }
 
     if (!admin?.password_hash) {
-      return json(res, 401, { error: "Credenciales inválidas" });
+      return sendJson(401, { error: "Credenciales inválidas" });
     }
 
     const validPassword = await bcrypt.compare(String(password), admin.password_hash);
     if (!validPassword) {
-      return json(res, 401, { error: "Credenciales inválidas" });
+      return sendJson(401, { error: "Credenciales inválidas" });
     }
 
     const token = randomToken(32);
@@ -54,7 +59,7 @@ module.exports = async (req, res) => {
     });
 
     if (sessionError) {
-      return json(res, 500, { error: sessionError.message });
+      return sendJson(500, { error: sessionError.message });
     }
 
     const sessionCookie = cookieSerialize("bunker_session", token, {
@@ -65,18 +70,18 @@ module.exports = async (req, res) => {
       maxAge,
     });
 
-    return json(
-      res,
-      200,
-      {
+    res.setHeader("Set-Cookie", sessionCookie);
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.end(
+      JSON.stringify({
         admin_id: admin.id,
         company_id: admin.company_id,
-      },
-      {
-        "Set-Cookie": sessionCookie,
-      }
+      })
     );
+
+    return;
   } catch (error) {
-    return json(res, 500, { error: error.message || "Server error" });
+    return sendJson(500, { error: error.message || "Server error" });
   }
 };
