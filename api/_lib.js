@@ -3,9 +3,7 @@ const { createClient } = require("@supabase/supabase-js");
 
 const getRequiredEnv = (key) => {
   const value = process.env[key];
-  if (!value) {
-    throw new Error(`Missing environment variable: ${key}`);
-  }
+  if (!value) throw new Error(`Missing environment variable: ${key}`);
   return value;
 };
 
@@ -20,12 +18,8 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, serviceRole);
 };
 
-const normalizeHost = (host = "") => {
-  return String(host)
-    .toLowerCase()
-    .split(":")[0]
-    .replace(/^www\./, "");
-};
+const normalizeHost = (host = "") =>
+  String(host).toLowerCase().split(":")[0].replace(/^www\./, "");
 
 const getCompanyByReqHost = async (req) => {
   const rawHost = req?.headers?.host;
@@ -42,13 +36,10 @@ const getCompanyByReqHost = async (req) => {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-
   return data || null;
 };
 
-const getBaseUrl = () => {
-  return process.env.APP_BASE_URL || "http://localhost:3000";
-};
+const getBaseUrl = () => process.env.APP_BASE_URL || "http://localhost:3000";
 
 const PLAN_PRICE_IDS = {
   starter: process.env.STRIPE_PRICE_ID_STARTER,
