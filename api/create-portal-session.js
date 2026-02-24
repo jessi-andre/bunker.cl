@@ -1,4 +1,9 @@
-const { getStripe, getBaseUrl } = require("./_lib");
+const {
+  getStripe,
+  getBaseUrl,
+  getSupabaseAdmin,
+  getCompanyByReqHost,
+} = require("./_lib");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -11,21 +16,33 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "email válido es requerido" });
     }
 
+    const company = await getCompanyByReqHost(req);
+    if (!company?.id) {
+      return res.status(404).json({ error: "Company not found for host" });
+    }
+
     const stripe = getStripe();
     const baseUrl = getBaseUrl();
+    const supabase = getSupabaseAdmin();
+    const normalizedEmail = String(email).toLowerCase().trim();
 
-    const customers = await stripe.customers.list({
-      email: String(email).toLowerCase(),
-      limit: 1,
-    });
+    const { data: alumno, error } = await supabase
+      .from("alumnos")
+      .select("stripeCustomerId")
+      .eq("email", normalizedEmail)
+      .eq("company_id", company.id)
+      .maybeSingle();
 
-    const customer = customers.data[0];
-    if (!customer) {
+    if (error) {
+      return res.status(500).json({ error: error.message || "Error buscando alumno" });
+    }
+
+    if (!alumno?.stripeCustomerId) {
       return res.status(404).json({ error: "No encontramos una suscripción para ese email" });
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customer.id,
+      customer: alumno.stripeCustomerId,
       return_url: `${baseUrl}/index.html#planes`,
     });
 

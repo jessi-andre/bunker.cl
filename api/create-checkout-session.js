@@ -52,6 +52,10 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Missing planId" });
     }
 
+    if (!process.env.STRIPE_PRICE_ID_STARTER || !process.env.STRIPE_PRICE_ID_PRO || !process.env.STRIPE_PRICE_ID_ELITE) {
+      return res.status(500).json({ error: "Missing STRIPE_PRICE_ID_* env vars" });
+    }
+
     
  const priceByPlan = {
   starter: process.env.STRIPE_PRICE_ID_STARTER,
@@ -102,8 +106,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: err.message || "Server error" });
   }
 };
-
-
-if (!process.env.STRIPE_PRICE_ID_STARTER || !process.env.STRIPE_PRICE_ID_PRO || !process.env.STRIPE_PRICE_ID_ELITE) {
-  return res.status(500).json({ error: "Missing STRIPE_PRICE_ID_* env vars" });
-}

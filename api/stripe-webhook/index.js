@@ -7,7 +7,7 @@ const {
 
 const { buffer } = require("micro");
 
-const upsertAlumno = async (payload, onConflict = "email") => {
+const upsertAlumno = async (payload, onConflict = "email,company_id") => {
   const supabase = getSupabaseAdmin();
 
   const { error } = await supabase
@@ -15,6 +15,47 @@ const upsertAlumno = async (payload, onConflict = "email") => {
     .upsert(payload, { onConflict });
 
   if (error) throw new Error(error.message);
+};
+
+const getCompanyIdFromMetadata = (object) =>
+  object?.metadata?.company_id || object?.metadata?.companyId || null;
+
+const resolveCompanyIdForEventObject = async (stripe, object) => {
+  const metadataCompanyId = getCompanyIdFromMetadata(object);
+  if (metadataCompanyId) return String(metadataCompanyId);
+
+  const customerId = object?.customer;
+  if (customerId) {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer?.deleted) {
+      const customerCompanyId = getCompanyIdFromMetadata(customer);
+      if (customerCompanyId) return String(customerCompanyId);
+    }
+  }
+
+  const subscriptionId = object?.subscription || object?.id;
+  if (subscriptionId && (object?.object === "invoice" || object?.object === "subscription")) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscriptionCompanyId = getCompanyIdFromMetadata(subscription);
+    if (subscriptionCompanyId) return String(subscriptionCompanyId);
+  }
+
+  return null;
+};
+
+const getAlumnoByCustomerAndCompany = async (customerId, company_id) => {
+  if (!customerId || !company_id) return null;
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("alumnos")
+    .select("email, company_id")
+    .eq("stripeCustomerId", customerId)
+    .eq("company_id", company_id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data || null;
 };
 
 module.exports = async (req, res) => {
@@ -45,7 +86,7 @@ module.exports = async (req, res) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-        const company_id = session.metadata?.company_id;
+        const company_id = await resolveCompanyIdForEventObject(stripe, session);
 
         if (!company_id) {
           return res.status(200).json({ received: true });
@@ -63,7 +104,7 @@ module.exports = async (req, res) => {
             stripeSubscriptionId: session.subscription,
             status: "active",
             plan: session.metadata?.plan || session.metadata?.planId || null,
-          }, "company_id,email");
+          }, "email,company_id");
         }
         break;
       }
@@ -71,22 +112,21 @@ module.exports = async (req, res) => {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
+        const company_id = await resolveCompanyIdForEventObject(stripe, subscription);
+
+        if (!company_id) {
+          return res.status(200).json({ received: true });
+        }
 
         const priceId = subscription.items?.data?.[0]?.price?.id;
         const customerId = subscription.customer;
         const status = subscription.status;
 
-        const supabase = getSupabaseAdmin();
-        const { data: alumno, error } = await supabase
-          .from("alumnos")
-          .select("email")
-          .eq("stripeCustomerId", customerId)
-          .maybeSingle();
-
-        if (error) throw new Error(error.message);
+        const alumno = await getAlumnoByCustomerAndCompany(customerId, company_id);
 
         if (alumno?.email) {
           await upsertAlumno({
+            company_id,
             email: alumno.email,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscription.id,
@@ -99,20 +139,19 @@ module.exports = async (req, res) => {
 
       case "invoice.payment_failed": {
         const invoice = event.data.object;
+        const company_id = await resolveCompanyIdForEventObject(stripe, invoice);
+
+        if (!company_id) {
+          return res.status(200).json({ received: true });
+        }
 
         const customerId = invoice.customer;
 
-        const supabase = getSupabaseAdmin();
-        const { data: alumno, error } = await supabase
-          .from("alumnos")
-          .select("email")
-          .eq("stripeCustomerId", customerId)
-          .maybeSingle();
-
-        if (error) throw new Error(error.message);
+        const alumno = await getAlumnoByCustomerAndCompany(customerId, company_id);
 
         if (alumno?.email) {
           await upsertAlumno({
+            company_id,
             email: alumno.email,
             status: "past_due",
           });

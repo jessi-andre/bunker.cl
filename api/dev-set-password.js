@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { createClient } = require("@supabase/supabase-js");
+const { getCompanyByReqHost } = require("./_lib");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -22,6 +23,13 @@ module.exports = async (req, res) => {
     return res.end(JSON.stringify({ error: "Missing email or password" }));
   }
 
+  const company = await getCompanyByReqHost(req);
+  if (!company?.id) {
+    res.statusCode = 404;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: "Company not found for host" }));
+  }
+
   const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -29,15 +37,24 @@ module.exports = async (req, res) => {
 
   const hash = await bcrypt.hash(password, 10);
 
-  const { error } = await supabase
-    .from("admins")
+  const { data, error } = await supabase
+    .from("company_admins")
     .update({ password_hash: hash })
-    .eq("email", String(email).toLowerCase().trim());
+    .eq("email", String(email).toLowerCase().trim())
+    .eq("company_id", company.id)
+    .select("id")
+    .limit(1);
 
   if (error) {
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.end(JSON.stringify({ error: error.message }));
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    res.statusCode = 404;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ error: "Admin not found for this company" }));
   }
 
   res.statusCode = 200;
