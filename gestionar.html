@@ -9,6 +9,8 @@
   <body>
     <main class="section">
       <div class="container legal-page">
+        <p id="session-info">Verificando sesión...</p>
+        <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesión</button>
         <h1>Gestionar suscripción</h1>
         <p>Ingresá tu email de inscripción para abrir el portal de cliente.</p>
         <form id="portal-form" class="portal-form">
@@ -34,6 +36,19 @@
             return false;
           }
 
+          let sessionData = null;
+          try {
+            sessionData = await response.json();
+          } catch (_) {}
+
+          const sessionInfoEl = document.getElementById("session-info");
+          if (sessionInfoEl) {
+            const adminEmail = sessionData?.email || sessionData?.admin_email || null;
+            sessionInfoEl.textContent = adminEmail
+              ? `Sesión activa: ${adminEmail}`
+              : "Sesión activa";
+          }
+
           return true;
         } catch (_) {
           window.location.href = "/login.html";
@@ -41,11 +56,31 @@
         }
       };
 
+      const logout = async () => {
+        try {
+          const response = await fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+
+          if (response.status === 200) {
+            window.location.href = "/login.html";
+            return;
+          }
+        } catch (_) {}
+
+        document.cookie = "bunker_session=; Path=/; Max-Age=0; SameSite=Lax";
+        document.cookie = "cookie_test=; Path=/; Max-Age=0; SameSite=Lax";
+        window.location.href = "/login.html";
+      };
+
       const form = document.getElementById("portal-form");
       const emailInput = document.getElementById("portal-email");
       const errorEl = document.getElementById("portal-error");
+      const logoutBtn = document.getElementById("logout-btn");
 
       ensureAdminSession();
+      logoutBtn?.addEventListener("click", logout);
 
       form?.addEventListener("submit", async (event) => {
         event.preventDefault();
