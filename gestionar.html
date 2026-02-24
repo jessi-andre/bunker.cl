@@ -22,9 +22,30 @@
     </main>
 
     <script>
+      const ensureAdminSession = async () => {
+        try {
+          const response = await fetch("/api/test-cookie", {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          if (response.status !== 200) {
+            window.location.href = "/login.html";
+            return false;
+          }
+
+          return true;
+        } catch (_) {
+          window.location.href = "/login.html";
+          return false;
+        }
+      };
+
       const form = document.getElementById("portal-form");
       const emailInput = document.getElementById("portal-email");
       const errorEl = document.getElementById("portal-error");
+
+      ensureAdminSession();
 
       form?.addEventListener("submit", async (event) => {
         event.preventDefault();
