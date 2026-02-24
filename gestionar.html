@@ -69,9 +69,10 @@
           }
         } catch (_) {}
 
-        document.cookie = "bunker_session=; Path=/; Max-Age=0; SameSite=Lax";
-        document.cookie = "cookie_test=; Path=/; Max-Age=0; SameSite=Lax";
-        window.location.href = "/login.html";
+        const sessionInfoEl = document.getElementById("session-info");
+        if (sessionInfoEl) {
+          sessionInfoEl.textContent = "No se pudo cerrar sesión. Intenta nuevamente.";
+        }
       };
 
       const form = document.getElementById("portal-form");
