@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { getSupabaseAdmin, getCompanyByReqHost } = require("./_lib");
+const { getSupabaseAdmin } = require("./_lib");
 
 function parseCookies(req) {
   const cookieHeader = req?.headers?.cookie || "";
@@ -29,6 +29,26 @@ function sha256Hex(input) {
   return crypto.createHash("sha256").update(String(input)).digest("hex");
 }
 
+function buildExpiredSessionCookie() {
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+
+  const parts = [
+    "bunker_session=",
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    "Max-Age=0",
+    "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+  ];
+
+  if (isProduction) {
+    parts.push("Secure");
+  }
+
+  return parts.join("; ");
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST" && req.method !== "GET") {
     res.statusCode = 405;
@@ -44,15 +64,10 @@ module.exports = async (req, res) => {
       const tokenHash = sha256Hex(token);
       const supabase = getSupabaseAdmin();
 
-      let deleteQuery = supabase
-        .from("sesiones_de_administración")
+      const deleteQuery = supabase
+        .from("admin_sessions")
         .delete({ count: "exact" })
-        .eq("hash_de_token_de_sesión", tokenHash);
-
-      const company = await getCompanyByReqHost(req);
-      if (company?.id) {
-        deleteQuery = deleteQuery.eq("id_de_empresa", company.id);
-      }
+        .eq("session_token_hash", tokenHash);
 
       const { error } = await deleteQuery;
       if (error) {
@@ -60,9 +75,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.setHeader("Set-Cookie", [
-      "bunker_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-    ]);
+    res.setHeader("Set-Cookie", [buildExpiredSessionCookie()]);
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.end(JSON.stringify({ ok: true }));

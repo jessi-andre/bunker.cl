@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { getSupabaseAdmin, getCompanyByReqHost } = require("./_lib");
+const { getSupabaseAdmin } = require("./_lib");
 
 function parseCookies(req) {
   const cookieHeader = req?.headers?.cookie || "";
@@ -43,27 +43,17 @@ module.exports = async (req, res) => {
     if (!token) {
       res.statusCode = 401;
       res.setHeader("Content-Type", "application/json; charset=utf-8");
-      return res.end(JSON.stringify({ ok: false, error: "Unauthorized" }));
+      return res.end(JSON.stringify({ error: "No session" }));
     }
 
     const tokenHash = sha256Hex(token);
     const supabase = getSupabaseAdmin();
 
-    let companyId = null;
-    const company = await getCompanyByReqHost(req);
-    if (company?.id) {
-      companyId = company.id;
-    }
-
     let query = supabase
-      .from("sesiones_de_administración")
-      .select("id, id_de_administrador, id_de_empresa, caduca_en")
-      .eq("hash_de_token_de_sesión", tokenHash)
+      .from("admin_sessions")
+      .select("id, admin_id, company_id, expires_at")
+      .eq("session_token_hash", tokenHash)
       .maybeSingle();
-
-    if (companyId) {
-      query = query.eq("id_de_empresa", companyId);
-    }
 
     const { data: session, error } = await query;
 
@@ -74,27 +64,26 @@ module.exports = async (req, res) => {
     if (!session) {
       res.statusCode = 401;
       res.setHeader("Content-Type", "application/json; charset=utf-8");
-      return res.end(JSON.stringify({ ok: false, error: "Unauthorized" }));
+      return res.end(JSON.stringify({ error: "No session" }));
     }
 
-    const expiresAt = session["caduca_en"];
+    const expiresAt = session.expires_at;
     const isExpired = !expiresAt || new Date(expiresAt).getTime() <= Date.now();
 
     if (isExpired) {
-      await supabase.from("sesiones_de_administración").delete().eq("id", session.id);
+      await supabase.from("admin_sessions").delete().eq("id", session.id);
 
       res.statusCode = 401;
       res.setHeader("Content-Type", "application/json; charset=utf-8");
-      return res.end(JSON.stringify({ ok: false, error: "Unauthorized" }));
+      return res.end(JSON.stringify({ error: "No session" }));
     }
 
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.end(
       JSON.stringify({
-        ok: true,
-        admin_id: session["id_de_administrador"],
-        company_id: session["id_de_empresa"],
+        admin_id: session.admin_id,
+        company_id: session.company_id,
       })
     );
   } catch (error) {
