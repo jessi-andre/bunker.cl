@@ -1,0 +1,26 @@
+const {
+  setSecurityHeaders,
+  validateRequestOrigin,
+  createCsrfToken,
+  setCsrfCookie,
+  json,
+  createRequestId,
+} = require("./_lib");
+
+module.exports = async (req, res) => {
+  setSecurityHeaders(res);
+
+  if (!validateRequestOrigin(req, res, { enforceForAllMethods: true })) {
+    return;
+  }
+
+  if (req.method !== "GET") {
+    return json(res, 405, { error: "Method not allowed" });
+  }
+
+  const requestId = createRequestId(req);
+  const csrfToken = createCsrfToken();
+  setCsrfCookie(res, csrfToken);
+
+  return json(res, 200, { csrfToken, request_id: requestId });
+};

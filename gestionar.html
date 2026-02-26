@@ -24,6 +24,22 @@
     </main>
 
     <script>
+      let csrfToken = null;
+
+      const fetchCsrfToken = async () => {
+        const response = await fetch("/api/csrf", {
+          method: "GET",
+          credentials: "same-origin",
+        });
+
+        if (!response.ok) {
+          throw new Error("No se pudo inicializar CSRF");
+        }
+
+        const data = await response.json();
+        csrfToken = data?.csrfToken || null;
+      };
+
       const ensureAdminSession = async () => {
         try {
           const response = await fetch("/api/test-cookie", {
@@ -58,9 +74,18 @@
 
       const logout = async () => {
         try {
+          if (!csrfToken) {
+            await fetchCsrfToken();
+          }
+
           const response = await fetch("/api/logout", {
             method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-csrf-token": csrfToken,
+            },
             credentials: "same-origin",
+            body: JSON.stringify({}),
           });
 
           if (response.status === 200) {
@@ -80,7 +105,15 @@
       const errorEl = document.getElementById("portal-error");
       const logoutBtn = document.getElementById("logout-btn");
 
-      ensureAdminSession();
+      (async () => {
+        const ok = await ensureAdminSession();
+        if (!ok) return;
+
+        try {
+          await fetchCsrfToken();
+        } catch (_) {}
+      })();
+
       logoutBtn?.addEventListener("click", logout);
 
       form?.addEventListener("submit", async (event) => {
@@ -93,9 +126,17 @@
         }
 
         try {
+          if (!csrfToken) {
+            await fetchCsrfToken();
+          }
+
           const response = await fetch("/api/create-portal-session", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "x-csrf-token": csrfToken,
+            },
             body: JSON.stringify({ email: emailInput.value.trim() }),
           });
 

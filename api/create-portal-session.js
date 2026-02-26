@@ -2,23 +2,57 @@ const {
   getStripe,
   getBaseUrl,
   getSupabaseAdmin,
-  getCompanyByReqHost,
+  setSecurityHeaders,
+  validateRequestOrigin,
+  requireJsonBody,
+  requireCsrf,
+  requireAuth,
+  requireTenant,
+  requireActivePlan,
+  json,
+  logEvent,
 } = require("./_lib");
 
 module.exports = async (req, res) => {
+  setSecurityHeaders(res);
+
+  if (!validateRequestOrigin(req, res)) {
+    return;
+  }
+
+  if (!requireJsonBody(req, res)) {
+    return;
+  }
+
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return json(res, 405, { error: "Method not allowed" });
   }
 
   try {
-    const { email } = req.body || {};
-    if (!email || !String(email).includes("@")) {
-      return res.status(400).json({ error: "email válido es requerido" });
+    if (!requireCsrf(req, res)) {
+      return;
     }
 
-    const company = await getCompanyByReqHost(req);
-    if (!company?.id) {
-      return res.status(404).json({ error: "Company not found for host" });
+    const authInfo = await requireAuth(req, res, { route: "/api/create-portal-session" });
+    if (!authInfo) return;
+
+    const company = await requireTenant(req, res, authInfo, {
+      route: "/api/create-portal-session",
+    });
+    if (!company) return;
+
+    const activePlan = await requireActivePlan(company.id, res, {
+      route: "/api/create-portal-session",
+      requestId: authInfo.requestId,
+    });
+    if (!activePlan) return;
+
+    const { email } = req.body || {};
+    if (!email || !String(email).includes("@")) {
+      return json(res, 400, {
+        error: "email válido es requerido",
+        request_id: authInfo.requestId,
+      });
     }
 
     const stripe = getStripe();
@@ -34,11 +68,17 @@ module.exports = async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(500).json({ error: error.message || "Error buscando alumno" });
+      return json(res, 500, {
+        error: error.message || "Error buscando alumno",
+        request_id: authInfo.requestId,
+      });
     }
 
     if (!alumno?.stripeCustomerId) {
-      return res.status(404).json({ error: "No encontramos una suscripción para ese email" });
+      return json(res, 404, {
+        error: "No encontramos una suscripción para ese email",
+        request_id: authInfo.requestId,
+      });
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -46,8 +86,16 @@ module.exports = async (req, res) => {
       return_url: `${baseUrl}/index.html#planes`,
     });
 
-    return res.status(200).json({ url: portalSession.url });
+    logEvent({
+      request_id: authInfo.requestId,
+      route: "/api/create-portal-session",
+      company_id: company.id,
+      admin_id: authInfo.session.admin_id,
+      result: "ok",
+    });
+
+    return json(res, 200, { url: portalSession.url, request_id: authInfo.requestId });
   } catch (error) {
-    return res.status(500).json({ error: error.message || "Error creando portal" });
+    return json(res, 500, { error: error.message || "Error creando portal" });
   }
 };
