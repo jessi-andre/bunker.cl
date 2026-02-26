@@ -39,7 +39,6 @@ module.exports = async (req, res) => {
   try {
     const cookies = parseCookies(req);
     const token = cookies.bunker_session;
-    console.log("[test-cookie] has cookie?", Boolean(token));
 
     if (!token) {
       res.statusCode = 401;
@@ -48,59 +47,54 @@ module.exports = async (req, res) => {
     }
 
     const tokenHash = sha256Hex(token);
-    console.log("[test-cookie] hash prefix", tokenHash.slice(0, 8));
-
     const supabase = getSupabaseAdmin();
-    let companyId = null;
 
+    let companyId = null;
     const company = await getCompanyByReqHost(req);
-    if (company?.id) companyId = company.id;
+    if (company?.id) {
+      companyId = company.id;
+    }
 
     let query = supabase
-      .from("admin_sessions")
-      .select("id, admin_id, company_id, expires_at")
-      .eq("session_token_hash", tokenHash)
+      .from("sesiones_de_administración")
+      .select("id, id_de_administrador, id_de_empresa, caduca_en")
+      .eq("hash_de_token_de_sesión", tokenHash)
       .maybeSingle();
 
     if (companyId) {
-      query = query.eq("company_id", companyId);
+      query = query.eq("id_de_empresa", companyId);
     }
 
     const { data: session, error } = await query;
+
     if (error) {
       throw new Error(error.message || "Session lookup failed");
     }
 
     if (!session) {
-      console.log("[test-cookie] session found?", false);
       res.statusCode = 401;
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       return res.end(JSON.stringify({ ok: false, error: "Unauthorized" }));
     }
 
-    const isExpired = !session.expires_at || new Date(session.expires_at).getTime() <= Date.now();
+    const expiresAt = session["caduca_en"];
+    const isExpired = !expiresAt || new Date(expiresAt).getTime() <= Date.now();
 
     if (isExpired) {
-      let deleteQuery = supabase.from("admin_sessions").delete().eq("id", session.id);
-      if (companyId) {
-        deleteQuery = deleteQuery.eq("company_id", companyId);
-      }
-      await deleteQuery;
+      await supabase.from("sesiones_de_administración").delete().eq("id", session.id);
 
-      console.log("[test-cookie] session found?", false);
       res.statusCode = 401;
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       return res.end(JSON.stringify({ ok: false, error: "Unauthorized" }));
     }
 
-    console.log("[test-cookie] session found?", true);
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.end(
       JSON.stringify({
         ok: true,
-        admin_id: session.admin_id,
-        company_id: session.company_id,
+        admin_id: session["id_de_administrador"],
+        company_id: session["id_de_empresa"],
       })
     );
   } catch (error) {

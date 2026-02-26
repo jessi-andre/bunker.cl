@@ -39,29 +39,25 @@ module.exports = async (req, res) => {
   try {
     const cookies = parseCookies(req);
     const token = cookies.bunker_session;
-    console.log("[logout] has cookie?", Boolean(token));
 
     if (token) {
       const tokenHash = sha256Hex(token);
-      console.log("[logout] hash prefix", tokenHash.slice(0, 8));
-
       const supabase = getSupabaseAdmin();
-      let query = supabase
-        .from("admin_sessions")
+
+      let deleteQuery = supabase
+        .from("sesiones_de_administración")
         .delete({ count: "exact" })
-        .eq("session_token_hash", tokenHash);
+        .eq("hash_de_token_de_sesión", tokenHash);
 
       const company = await getCompanyByReqHost(req);
       if (company?.id) {
-        query = query.eq("company_id", company.id);
+        deleteQuery = deleteQuery.eq("id_de_empresa", company.id);
       }
 
-      const { count, error } = await query;
+      const { error } = await deleteQuery;
       if (error) {
         throw new Error(error.message || "Failed to delete session");
       }
-
-      console.log("[logout] deleted rows", count || 0);
     }
 
     res.setHeader("Set-Cookie", [
