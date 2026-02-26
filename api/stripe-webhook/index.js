@@ -3,6 +3,8 @@ const {
   getStripe,
   getSupabaseAdmin,
   normalizePlanFromPriceId,
+  setSecurityHeaders,
+  logEvent,
 } = require("../_lib");
 
 const { buffer } = require("micro");
@@ -13,6 +15,19 @@ const upsertAlumno = async (payload, onConflict = "email,company_id") => {
   const { error } = await supabase
     .from("alumnos")
     .upsert(payload, { onConflict });
+
+  if (error) throw new Error(error.message);
+};
+
+const upsertCompanySubscription = async (payload) => {
+  const supabase = getSupabaseAdmin();
+  const row = {
+    ...payload,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from("company_subscriptions")
+    .upsert(row, { onConflict: "company_id" });
 
   if (error) throw new Error(error.message);
 };
@@ -59,6 +74,8 @@ const getAlumnoByCustomerAndCompany = async (customerId, company_id) => {
 };
 
 module.exports = async (req, res) => {
+  setSecurityHeaders(res);
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -106,6 +123,26 @@ module.exports = async (req, res) => {
             plan: session.metadata?.plan || session.metadata?.planId || null,
           }, "email,company_id");
         }
+
+        if (session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          await upsertCompanySubscription({
+            company_id,
+            stripe_customer_id: session.customer,
+            stripe_subscription_id: session.subscription,
+            status: subscription.status,
+            plan:
+              normalizePlanFromPriceId(subscription.items?.data?.[0]?.price?.id) ||
+              session.metadata?.plan ||
+              session.metadata?.planId ||
+              null,
+            current_period_end: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000).toISOString()
+              : null,
+          });
+        }
+
+        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
         break;
       }
 
@@ -134,6 +171,48 @@ module.exports = async (req, res) => {
             plan: normalizePlanFromPriceId(priceId),
           });
         }
+
+        await upsertCompanySubscription({
+          company_id,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscription.id,
+          status,
+          plan: normalizePlanFromPriceId(priceId),
+          current_period_end: subscription.current_period_end
+            ? new Date(subscription.current_period_end * 1000).toISOString()
+            : null,
+        });
+
+        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
+        break;
+      }
+
+      case "invoice.paid": {
+        const invoice = event.data.object;
+        const company_id = await resolveCompanyIdForEventObject(stripe, invoice);
+
+        if (!company_id) {
+          return res.status(200).json({ received: true });
+        }
+
+        const customerId = invoice.customer;
+        const subscriptionId = invoice.subscription;
+
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          await upsertCompanySubscription({
+            company_id,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscription.id,
+            status: subscription.status,
+            plan: normalizePlanFromPriceId(subscription.items?.data?.[0]?.price?.id),
+            current_period_end: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000).toISOString()
+              : null,
+          });
+        }
+
+        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
         break;
       }
 
@@ -156,6 +235,17 @@ module.exports = async (req, res) => {
             status: "past_due",
           });
         }
+
+        await upsertCompanySubscription({
+          company_id,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: invoice.subscription || null,
+          status: "past_due",
+          plan: null,
+          current_period_end: null,
+        });
+
+        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
         break;
       }
 
