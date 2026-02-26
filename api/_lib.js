@@ -287,7 +287,7 @@ async function requireAuth(req, res, opts = {}) {
 
   const { data: session, error } = await supabase
     .from("admin_sessions")
-    .select("id, admin_id, company_id, token_hash, expires_at, created_at, last_seen_at, user_agent_hash")
+    .select("id, admin_id, company_id, token_hash, expires_at, created_at, user_agent_hash")
     .eq("token_hash", tokenHash)
     .maybeSingle();
 
@@ -420,9 +420,7 @@ async function requireAuth(req, res, opts = {}) {
     }
   }
 
-  const updatePayload = {
-    last_seen_at: new Date(now).toISOString(),
-  };
+  const updatePayload = {};
 
   if (!session.user_agent_hash) {
     updatePayload.user_agent_hash = requestUaHash;
@@ -432,7 +430,9 @@ async function requireAuth(req, res, opts = {}) {
     updatePayload.expires_at = newExpiresAtIso;
   }
 
-  await supabase.from("admin_sessions").update(updatePayload).eq("id", session.id);
+  if (Object.keys(updatePayload).length > 0) {
+    await supabase.from("admin_sessions").update(updatePayload).eq("id", session.id);
+  }
 
   if (newExpiresAtIso) {
     const maxAge = Math.max(0, Math.floor((new Date(newExpiresAtIso).getTime() - now) / 1000));
