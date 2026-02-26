@@ -538,26 +538,22 @@ function requireCsrf(req, res) {
   return true;
 }
 
-async function requireActivePlan(companyId) {
+async function requireActivePlan(company_id) {
   const supabase = getSupabaseAdmin();
-  const sub = await supabase
+  const { data, error } = await supabase
     .from("company_subscriptions")
     .select("status")
-    .eq("company_id", companyId)
+    .eq("company_id", company_id)
     .single();
 
-  if (sub.error) {
-    const notFound = /JSON object requested, multiple \(or no\) rows returned|PGRST116/i.test(
-      String(sub.error.message || "")
-    );
-
-    if (!notFound) {
-      throw new Error(sub.error.message || "Subscription lookup failed");
-    }
+  if (error || !data) {
+    const err = new Error("PLAN_NOT_FOUND");
+    err.status = 402;
+    throw err;
   }
 
   const allowed = new Set(["active", "trialing"]);
-  const status = String(sub.data?.status || "inactive").toLowerCase();
+  const status = String(data.status || "").toLowerCase();
 
   if (!allowed.has(status)) {
     const err = new Error("PLAN_INACTIVE");
@@ -565,7 +561,7 @@ async function requireActivePlan(companyId) {
     throw err;
   }
 
-  return sub.data;
+  return data;
 }
 
 function getExpiredSessionCookie() {
