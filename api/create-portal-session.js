@@ -41,11 +41,7 @@ module.exports = async (req, res) => {
     });
     if (!company) return;
 
-    const activePlan = await requireActivePlan(company.id, res, {
-      route: "/api/create-portal-session",
-      requestId: authInfo.requestId,
-    });
-    if (!activePlan) return;
+    await requireActivePlan(company.id);
 
     const { email } = req.body || {};
     if (!email || !String(email).includes("@")) {
@@ -96,6 +92,10 @@ module.exports = async (req, res) => {
 
     return json(res, 200, { url: portalSession.url, request_id: authInfo.requestId });
   } catch (error) {
+    if (error?.status === 402 || error?.message === "PLAN_INACTIVE") {
+      return json(res, 402, { code: "PLAN_INACTIVE" });
+    }
+
     return json(res, 500, { error: error.message || "Error creando portal" });
   }
 };

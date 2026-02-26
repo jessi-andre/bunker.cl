@@ -131,11 +131,7 @@ module.exports = async (req, res) => {
             stripe_customer_id: session.customer,
             stripe_subscription_id: session.subscription,
             status: subscription.status,
-            plan:
-              normalizePlanFromPriceId(subscription.items?.data?.[0]?.price?.id) ||
-              session.metadata?.plan ||
-              session.metadata?.planId ||
-              null,
+            price_id: subscription.items?.data?.[0]?.price?.id || null,
             current_period_end: subscription.current_period_end
               ? new Date(subscription.current_period_end * 1000).toISOString()
               : null,
@@ -177,72 +173,10 @@ module.exports = async (req, res) => {
           stripe_customer_id: customerId,
           stripe_subscription_id: subscription.id,
           status,
-          plan: normalizePlanFromPriceId(priceId),
+          price_id: priceId || null,
           current_period_end: subscription.current_period_end
             ? new Date(subscription.current_period_end * 1000).toISOString()
             : null,
-        });
-
-        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
-        break;
-      }
-
-      case "invoice.paid": {
-        const invoice = event.data.object;
-        const company_id = await resolveCompanyIdForEventObject(stripe, invoice);
-
-        if (!company_id) {
-          return res.status(200).json({ received: true });
-        }
-
-        const customerId = invoice.customer;
-        const subscriptionId = invoice.subscription;
-
-        if (subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          await upsertCompanySubscription({
-            company_id,
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscription.id,
-            status: subscription.status,
-            plan: normalizePlanFromPriceId(subscription.items?.data?.[0]?.price?.id),
-            current_period_end: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : null,
-          });
-        }
-
-        logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });
-        break;
-      }
-
-      case "invoice.payment_failed": {
-        const invoice = event.data.object;
-        const company_id = await resolveCompanyIdForEventObject(stripe, invoice);
-
-        if (!company_id) {
-          return res.status(200).json({ received: true });
-        }
-
-        const customerId = invoice.customer;
-
-        const alumno = await getAlumnoByCustomerAndCompany(customerId, company_id);
-
-        if (alumno?.email) {
-          await upsertAlumno({
-            company_id,
-            email: alumno.email,
-            status: "past_due",
-          });
-        }
-
-        await upsertCompanySubscription({
-          company_id,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: invoice.subscription || null,
-          status: "past_due",
-          plan: null,
-          current_period_end: null,
         });
 
         logEvent({ route: "/api/stripe-webhook", result: "ok", event_type: event.type, company_id });

@@ -538,44 +538,34 @@ function requireCsrf(req, res) {
   return true;
 }
 
-async function requireActivePlan(companyId, res, opts = {}) {
-  const route = opts.route || "unknown";
-  const requestId = opts.requestId || null;
-
+async function requireActivePlan(companyId) {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  const sub = await supabase
     .from("company_subscriptions")
-    .select("status, plan, current_period_end")
+    .select("status")
     .eq("company_id", companyId)
-    .maybeSingle();
+    .single();
 
-  if (error) {
-    json(res, 500, { error: error.message, request_id: requestId });
-    return null;
+  if (sub.error) {
+    const notFound = /JSON object requested, multiple \(or no\) rows returned|PGRST116/i.test(
+      String(sub.error.message || "")
+    );
+
+    if (!notFound) {
+      throw new Error(sub.error.message || "Subscription lookup failed");
+    }
   }
 
   const allowed = new Set(["active", "trialing"]);
-  const status = String(data?.status || "inactive").toLowerCase();
+  const status = String(sub.data?.status || "inactive").toLowerCase();
 
   if (!allowed.has(status)) {
-    await writeAuditLog({
-      request_id: requestId,
-      route,
-      company_id: companyId,
-      action: "plan_check",
-      result: "reject",
-      error_code: "PLAN_INACTIVE",
-      metadata: { status },
-    });
-    json(res, 402, {
-      code: "PLAN_INACTIVE",
-      status,
-      request_id: requestId,
-    });
-    return null;
+    const err = new Error("PLAN_INACTIVE");
+    err.status = 402;
+    throw err;
   }
 
-  return data;
+  return sub.data;
 }
 
 function getExpiredSessionCookie() {
