@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
       const deleteQuery = supabase
         .from("admin_sessions")
         .delete({ count: "exact" })
-        .eq("session_token_hash", tokenHash);
+        .eq("token_hash", tokenHash);
 
       const { error } = await deleteQuery;
       if (error) {

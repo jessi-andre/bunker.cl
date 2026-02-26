@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
     let query = supabase
       .from("admin_sessions")
       .select("id, admin_id, company_id, expires_at")
-      .eq("session_token_hash", tokenHash)
+      .eq("token_hash", tokenHash)
       .maybeSingle();
 
     const { data: session, error } = await query;
