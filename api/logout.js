@@ -2,10 +2,10 @@ const {
   getSupabaseAdmin,
   parseCookies,
   sha256Hex,
+  cookieSerialize,
   setSecurityHeaders,
   validateRequestOrigin,
   requireCsrf,
-  getExpiredSessionCookie,
   logEvent,
   createRequestId,
 } = require("./_lib");
@@ -45,7 +45,20 @@ module.exports = async (req, res) => {
       }
     }
 
-    res.setHeader("Set-Cookie", [getExpiredSessionCookie()]);
+    const isHttps =
+      String(req.headers["x-forwarded-proto"] || "").includes("https") ||
+      process.env.NODE_ENV === "production";
+
+    const sessionCookie = cookieSerialize("bunker_session", "", {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+    });
+
+    res.setHeader("Set-Cookie", [sessionCookie]);
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.end(JSON.stringify({ ok: true, request_id: requestId }));

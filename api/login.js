@@ -230,9 +230,13 @@ module.exports = async (req, res) => {
       return sendJson(500, { error: sessionError.message });
     }
 
+    const isHttps =
+      String(req.headers["x-forwarded-proto"] || "").includes("https") ||
+      process.env.NODE_ENV === "production";
+
     const sessionCookie = cookieSerialize("bunker_session", token, {
       httpOnly: true,
-      secure: true,
+      secure: isHttps,
       sameSite: "Lax",
       path: "/",
       maxAge,
