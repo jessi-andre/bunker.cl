@@ -231,12 +231,12 @@ module.exports = async (req, res) => {
     }
 
     const isHttps =
-      String(req.headers["x-forwarded-proto"] || "").includes("https") ||
-      process.env.NODE_ENV === "production";
+      String(req.headers["x-forwarded-proto"] || "").toLowerCase() === "https";
+    const secureCookie = isHttps || process.env.NODE_ENV === "production";
 
     const sessionCookie = cookieSerialize("bunker_session", token, {
       httpOnly: true,
-      secure: isHttps,
+      secure: secureCookie,
       sameSite: "Lax",
       path: "/",
       maxAge,

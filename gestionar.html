@@ -44,7 +44,7 @@
         try {
           const response = await fetch("/api/test-cookie", {
             method: "GET",
-            credentials: "same-origin",
+            credentials: "include",
           });
 
           if (response.status !== 200) {
