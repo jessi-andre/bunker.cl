@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     }
 
     const requestId = createRequestId(req);
-    const cookies = parseCookies(req);
+    const cookies = parseCookies(req?.headers?.cookie || "");
     const token = cookies.bunker_session;
 
     if (token) {

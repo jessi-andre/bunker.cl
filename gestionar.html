@@ -29,7 +29,7 @@
       const fetchCsrfToken = async () => {
         const response = await fetch("/api/csrf", {
           method: "GET",
-          credentials: "same-origin",
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -37,7 +37,7 @@
         }
 
         const data = await response.json();
-        csrfToken = data?.csrfToken || null;
+        csrfToken = data?.csrf_token || data?.csrfToken || null;
       };
 
       const ensureAdminSession = async () => {
@@ -84,7 +84,7 @@
               "Content-Type": "application/json",
               "x-csrf-token": csrfToken,
             },
-            credentials: "same-origin",
+            credentials: "include",
             body: JSON.stringify({}),
           });
 
@@ -92,6 +92,14 @@
             window.location.href = "/login.html";
             return;
           }
+
+          const data = await response.json().catch(() => null);
+          const sessionInfoEl = document.getElementById("session-info");
+          if (sessionInfoEl) {
+            sessionInfoEl.textContent =
+              data?.error || "No se pudo cerrar sesión. Intenta nuevamente.";
+          }
+          return;
         } catch (_) {}
 
         const sessionInfoEl = document.getElementById("session-info");
@@ -132,7 +140,7 @@
 
           const response = await fetch("/api/create-portal-session", {
             method: "POST",
-            credentials: "same-origin",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               "x-csrf-token": csrfToken,

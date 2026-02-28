@@ -488,13 +488,18 @@ async function requireTenant(req, res, authInfo, opts = {}) {
 }
 
 function createCsrfToken() {
-  return randomToken(24);
+  return randomToken(32);
 }
 
-function setCsrfCookie(res, token) {
+function setCsrfCookie(req, res, token) {
+  const isHttps =
+    String(req?.headers?.["x-forwarded-proto"] || "").toLowerCase() === "https" ||
+    req?.connection?.encrypted === true;
+  const secureCookie = process.env.NODE_ENV === "production" || isHttps;
+
   const cookie = cookieSerialize("bunker_csrf", token, {
-    httpOnly: false,
-    secure: true,
+    httpOnly: true,
+    secure: secureCookie,
     sameSite: "Lax",
     path: "/",
     maxAge: 2 * 60 * 60,
@@ -512,11 +517,19 @@ const isSameHostFromUrl = (urlString, reqHost) => {
 };
 
 function requireCsrf(req, res) {
+  const method = String(req?.method || "GET").toUpperCase();
+  const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  if (!isMutation) {
+    return true;
+  }
+
   const cookies = parseCookies(req?.headers?.cookie || "");
   const cookieToken = cookies.bunker_csrf;
   const headerToken = req?.headers?.["x-csrf-token"];
+  const bodyToken = req?.body?.csrf_token;
+  const providedToken = headerToken || bodyToken;
 
-  if (!cookieToken || !headerToken || cookieToken !== String(headerToken)) {
+  if (!cookieToken || !providedToken || cookieToken !== String(providedToken)) {
     json(res, 403, { error: "CSRF token invalid" });
     return false;
   }

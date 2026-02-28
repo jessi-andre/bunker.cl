@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
 
   const requestId = createRequestId(req);
   const csrfToken = createCsrfToken();
-  setCsrfCookie(res, csrfToken);
+  setCsrfCookie(req, res, csrfToken);
 
-  return json(res, 200, { csrfToken, request_id: requestId });
+  return json(res, 200, { csrf_token: csrfToken, request_id: requestId });
 };
