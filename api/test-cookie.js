@@ -3,6 +3,7 @@ const {
   validateRequestOrigin,
   requireAuth,
   requireTenant,
+  getSupabaseAdmin,
   logEvent,
 } = require("./_lib");
 
@@ -25,6 +26,30 @@ module.exports = async (req, res) => {
 
     const company = await requireTenant(req, res, authInfo, { route: "/api/test-cookie" });
     if (!company) return;
+    if (!company.id) return;
+
+    const supabase = getSupabaseAdmin();
+    const { data: companyRow, error: companyError } = await supabase
+      .from("companies")
+      .select("subscription_status")
+      .eq("id", company.id)
+      .maybeSingle();
+
+    if (companyError) {
+      throw new Error(companyError.message);
+    }
+
+    const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
+    if (!["active", "trialing"].includes(subscriptionStatus)) {
+      res.statusCode = 402;
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      return res.end(
+        JSON.stringify({
+          error: "subscription_inactive",
+          status: companyRow?.subscription_status ?? null,
+        })
+      );
+    }
 
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
