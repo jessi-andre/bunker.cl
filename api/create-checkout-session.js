@@ -117,11 +117,12 @@ module.exports = async (req, res) => {
       },
 
       metadata: {
+        ...(req.body?.metadata || {}),
         company_id: String(company.id),
         plan,
         email: normalizedEmail,
         planId: String(planId),
-        companyId: String(company.id), 
+        companyId: String(company.id),
         domain: String(domain),
       },
     });
