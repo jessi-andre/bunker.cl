@@ -25,27 +25,40 @@ const getSupabaseAdmin = () => {
 const normalizeHost = (host = "") =>
   String(host).toLowerCase().split(":")[0].replace(/^www\./, "");
 
+const securityHeaders = () => ({
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Resource-Policy": "same-origin",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
+    "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://billing.stripe.com https://*.supabase.co",
+    "script-src 'self' https://js.stripe.com 'unsafe-inline'",
+    "frame-src https://js.stripe.com https://checkout.stripe.com https://billing.stripe.com",
+    "img-src 'self' data: https:",
+    "style-src 'self' 'unsafe-inline'",
+  ].join("; "),
+});
+
+const applySecurityHeaders = (res, extraHeaders = {}) => {
+  const baseHeaders = securityHeaders();
+  for (const [k, v] of Object.entries(baseHeaders)) {
+    res.setHeader(k, v);
+  }
+  for (const [k, v] of Object.entries(extraHeaders || {})) {
+    res.setHeader(k, v);
+  }
+};
+
 const setSecurityHeaders = (res) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "no-referrer");
-  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "object-src 'none'",
-      "frame-ancestors 'none'",
-      "script-src 'self' https://js.stripe.com https://www.googletagmanager.com https://connect.facebook.net",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://api.stripe.com https://*.supabase.co",
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "form-action 'self'",
-    ].join("; ")
-  );
+  applySecurityHeaders(res);
 };
 
 const parseCookies = (cookieHeader = "") => {
@@ -94,6 +107,7 @@ const setCorsHeaders = (res, allowedOrigin) => {
 };
 
 const validateRequestOrigin = (req, res, opts = {}) => {
+  applySecurityHeaders(res);
   const { enforceForAllMethods = false } = opts;
   const method = String(req?.method || "GET").toUpperCase();
   const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
@@ -687,17 +701,9 @@ function getExpiredSessionCookie() {
 }
 
 function json(res, status, data, extraHeaders = {}) {
-  setSecurityHeaders(res);
+  applySecurityHeaders(res, extraHeaders);
   res.statusCode = status;
-
-  for (const [k, v] of Object.entries(extraHeaders || {})) {
-    res.setHeader(k, v);
-  }
-
-  if (!res.getHeader("Content-Type")) {
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-  }
-
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(data));
 }
 
@@ -713,6 +719,8 @@ module.exports = {
   getStripe,
   getSupabaseAdmin,
   isProduction,
+  securityHeaders,
+  applySecurityHeaders,
   setSecurityHeaders,
   validateRequestOrigin,
   requireJsonBody,

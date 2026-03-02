@@ -1,47 +1,35 @@
 const bcrypt = require("bcryptjs");
 const { createClient } = require("@supabase/supabase-js");
-const { getCompanyByReqHost } = require("./_lib");
+const { getCompanyByReqHost, json } = require("./_lib");
 
 module.exports = async (req, res) => {
   // disabled for multi-tenant safety
   if (process.env.VERCEL_ENV === "production") {
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Not found" }));
+    return json(res, 404, { error: "Not found" });
   }
 
   if (req.method !== "POST") {
-    res.statusCode = 405;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Method not allowed" }));
+    return json(res, 405, { error: "Method not allowed" });
   }
 
   const adminScriptKey = process.env.ADMIN_SCRIPT_KEY;
   if (!adminScriptKey) {
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Missing ADMIN_SCRIPT_KEY" }));
+    return json(res, 500, { error: "Missing ADMIN_SCRIPT_KEY" });
   }
 
   const secret = req.headers["x-admin-key"];
   if (!secret || secret !== adminScriptKey) {
-    res.statusCode = 401;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Unauthorized" }));
+    return json(res, 401, { error: "Unauthorized" });
   }
 
   const { email, newPassword } = req.body || {};
   if (!email || !newPassword) {
-    res.statusCode = 400;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Missing email or newPassword" }));
+    return json(res, 400, { error: "Missing email or newPassword" });
   }
 
   const company = await getCompanyByReqHost(req);
   if (!company?.id) {
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Company not found for host" }));
+    return json(res, 404, { error: "Company not found for host" });
   }
 
   const supabase = createClient(
@@ -60,18 +48,12 @@ module.exports = async (req, res) => {
     .limit(1);
 
   if (error) {
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: error.message }));
+    return json(res, 500, { error: error.message });
   }
 
   if (!Array.isArray(data) || data.length === 0) {
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Admin not found for this company" }));
+    return json(res, 404, { error: "Admin not found for this company" });
   }
 
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  return res.end(JSON.stringify({ ok: true }));
+  return json(res, 200, { ok: true });
 };

@@ -5,7 +5,6 @@ const {
   randomToken,
   sha256Hex,
   cookieSerialize,
-  setSecurityHeaders,
   validateRequestOrigin,
   requireJsonBody,
   getClientIp,
@@ -15,13 +14,12 @@ const {
   clearLoginAttempts,
   isLocked,
   createRequestId,
+  json,
   logEvent,
   writeAuditLog,
 } = require("./_lib");
 
 module.exports = async (req, res) => {
-  setSecurityHeaders(res);
-
   if (!validateRequestOrigin(req, res)) {
     return;
   }
@@ -33,9 +31,7 @@ module.exports = async (req, res) => {
   const requestId = createRequestId(req);
 
   const sendJson = (status, data) => {
-    res.statusCode = status;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(JSON.stringify({ ...data, request_id: requestId }));
+    return json(res, status, { ...data, request_id: requestId });
   };
 
   if (req.method !== "POST") {
@@ -185,15 +181,15 @@ module.exports = async (req, res) => {
       maxAge,
     });
 
-    res.setHeader("Set-Cookie", sessionCookie);
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(
-      JSON.stringify({
+    json(
+      res,
+      200,
+      {
         admin_id: admin.id,
         company_id: company.id,
         request_id: requestId,
-      })
+      },
+      { "Set-Cookie": sessionCookie }
     );
 
     logEvent({

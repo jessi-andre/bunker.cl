@@ -1,23 +1,19 @@
 const {
-  setSecurityHeaders,
   validateRequestOrigin,
   requireAuth,
   requireTenant,
   getSupabaseAdmin,
+  json,
   logEvent,
 } = require("./_lib");
 
 module.exports = async (req, res) => {
-  setSecurityHeaders(res);
-
   if (!validateRequestOrigin(req, res, { enforceForAllMethods: true })) {
     return;
   }
 
   if (req.method !== "GET") {
-    res.statusCode = 405;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: "Method not allowed" }));
+    return json(res, 405, { error: "Method not allowed" });
   }
 
   try {
@@ -41,25 +37,17 @@ module.exports = async (req, res) => {
 
     const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
     if (!["active", "trialing"].includes(subscriptionStatus)) {
-      res.statusCode = 402;
-      res.setHeader("Content-Type", "application/json; charset=utf-8");
-      return res.end(
-        JSON.stringify({
-          error: "subscription_inactive",
-          status: companyRow?.subscription_status ?? null,
-        })
-      );
+      return json(res, 402, {
+        error: "subscription_inactive",
+        status: companyRow?.subscription_status ?? null,
+      });
     }
 
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(
-      JSON.stringify({
-        admin_id: authInfo.session.admin_id,
-        company_id: authInfo.session.company_id,
-        request_id: authInfo.requestId,
-      })
-    );
+    json(res, 200, {
+      admin_id: authInfo.session.admin_id,
+      company_id: authInfo.session.company_id,
+      request_id: authInfo.requestId,
+    });
 
     logEvent({
       request_id: authInfo.requestId,
@@ -71,8 +59,6 @@ module.exports = async (req, res) => {
 
     return;
   } catch (error) {
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ error: error.message || "Session check error" }));
+    return json(res, 500, { error: error.message || "Session check error" });
   }
 };
