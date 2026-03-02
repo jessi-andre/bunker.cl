@@ -9,72 +9,15 @@ const {
   validateRequestOrigin,
   requireJsonBody,
   getClientIp,
+  buildLoginAttemptKey,
+  getLoginAttempts,
+  incrementLoginFail,
+  clearLoginAttempts,
+  isLocked,
   createRequestId,
   logEvent,
   writeAuditLog,
 } = require("./_lib");
-
-const LOCKOUT_STEPS = [
-  { threshold: 5, minutes: 15 },
-  { threshold: 8, minutes: 60 },
-  { threshold: 12, minutes: 240 },
-];
-
-const getLockoutMinutes = (attempts) => {
-  let lockoutMinutes = 0;
-  for (const step of LOCKOUT_STEPS) {
-    if (attempts >= step.threshold) {
-      lockoutMinutes = step.minutes;
-    }
-  }
-  return lockoutMinutes;
-};
-
-const tableMissing = (error) =>
-  /relation .*login_attempts.* does not exist|Could not find the table/i.test(
-    String(error?.message || "")
-  );
-
-const buildLoginKey = (ip, email) => sha256Hex(`${ip}|${email}`);
-
-async function getLoginAttemptRow(supabase, key) {
-  const { data, error } = await supabase
-    .from("login_attempts")
-    .select("key, attempts, first_attempt_at, locked_until")
-    .eq("key", key)
-    .maybeSingle();
-
-  if (error && !tableMissing(error)) throw error;
-  if (error && tableMissing(error)) return null;
-  return data || null;
-}
-
-async function registerFailedLogin(supabase, key, previousRow) {
-  const now = new Date();
-  const attempts = Number(previousRow?.attempts || 0) + 1;
-  const firstAttemptAt = previousRow?.first_attempt_at || now.toISOString();
-  const lockoutMinutes = getLockoutMinutes(attempts);
-  const lockedUntil =
-    lockoutMinutes > 0 ? new Date(now.getTime() + lockoutMinutes * 60 * 1000).toISOString() : null;
-
-  const { error } = await supabase.from("login_attempts").upsert(
-    {
-      key,
-      attempts,
-      first_attempt_at: firstAttemptAt,
-      locked_until: lockedUntil,
-      updated_at: now.toISOString(),
-    },
-    { onConflict: "key" }
-  );
-
-  if (error && !tableMissing(error)) throw error;
-}
-
-async function clearLoginAttempts(supabase, key) {
-  const { error } = await supabase.from("login_attempts").delete().eq("key", key);
-  if (error && !tableMissing(error)) throw error;
-}
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);
@@ -114,11 +57,10 @@ module.exports = async (req, res) => {
 
     const normalizedEmail = String(email).toLowerCase().trim();
     const ip = getClientIp(req);
-    const loginKey = buildLoginKey(ip, normalizedEmail);
+    const loginKey = buildLoginAttemptKey(ip, normalizedEmail);
 
-    const loginAttempt = await getLoginAttemptRow(supabase, loginKey);
-    const lockedUntilMs = new Date(loginAttempt?.locked_until || 0).getTime();
-    if (Number.isFinite(lockedUntilMs) && lockedUntilMs > Date.now()) {
+    const loginAttempt = await getLoginAttempts(supabase, loginKey);
+    if (isLocked(loginAttempt)) {
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -128,7 +70,7 @@ module.exports = async (req, res) => {
         error_code: "LOGIN_LOCKED",
         metadata: { ip },
       });
-      return sendJson(429, { error: "Credenciales inválidas" });
+      return sendJson(429, { error: "Too many attempts. Try later." });
     }
 
     const { data: admin, error } = await supabase
@@ -155,7 +97,7 @@ module.exports = async (req, res) => {
         return sendJson(500, { error: otherTenantError.message });
       }
 
-      await registerFailedLogin(supabase, loginKey, loginAttempt);
+      await incrementLoginFail(supabase, loginKey, loginAttempt);
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -167,15 +109,15 @@ module.exports = async (req, res) => {
       });
 
       if (otherTenantAdmin?.id) {
-        return sendJson(401, { error: "Credenciales inválidas" });
+        return sendJson(401, { error: "Credenciales invalidas" });
       }
 
-      return sendJson(401, { error: "Credenciales inválidas" });
+      return sendJson(401, { error: "Credenciales invalidas" });
     }
 
     const validPassword = await bcrypt.compare(String(password), admin.password_hash);
     if (!validPassword) {
-      await registerFailedLogin(supabase, loginKey, loginAttempt);
+      await incrementLoginFail(supabase, loginKey, loginAttempt);
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -186,7 +128,7 @@ module.exports = async (req, res) => {
         error_code: "INVALID_CREDENTIALS",
         metadata: { ip },
       });
-      return sendJson(401, { error: "Credenciales inválidas" });
+      return sendJson(401, { error: "Credenciales invalidas" });
     }
 
     await clearLoginAttempts(supabase, loginKey);

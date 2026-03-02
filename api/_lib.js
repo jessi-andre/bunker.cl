@@ -220,6 +220,104 @@ function getClientIp(req) {
   return String(req?.socket?.remoteAddress || "unknown");
 }
 
+const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPT_LOCK_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPT_MAX_FAILS = 8;
+
+const isLoginAttemptsTableMissingError = (error) =>
+  /relation .*login_attempts.* does not exist|Could not find the table/i.test(
+    String(error?.message || "")
+  );
+
+function buildLoginAttemptKey(ip, email) {
+  const ipPart = String(ip || "").trim().toLowerCase();
+  const emailPart = String(email || "").trim().toLowerCase();
+  return sha256Hex(`${ipPart}|${emailPart}`);
+}
+
+async function getLoginAttempts(supabase, key) {
+  const { data, error } = await supabase
+    .from("login_attempts")
+    .select("key, fails, first_fail_at, locked_until")
+    .eq("key", key)
+    .maybeSingle();
+
+  if (error && !isLoginAttemptsTableMissingError(error)) {
+    throw new Error(error.message || "Failed to read login attempts");
+  }
+
+  if (error && isLoginAttemptsTableMissingError(error)) {
+    return {
+      key,
+      fails: 0,
+      first_fail_at: null,
+      locked_until: null,
+    };
+  }
+
+  if (!data) {
+    return {
+      key,
+      fails: 0,
+      first_fail_at: null,
+      locked_until: null,
+    };
+  }
+
+  return data;
+}
+
+function isLocked(attempt) {
+  const lockedUntilMs = new Date(attempt?.locked_until || 0).getTime();
+  return Number.isFinite(lockedUntilMs) && lockedUntilMs > Date.now();
+}
+
+async function incrementLoginFail(supabase, key, previousAttempt = null) {
+  const nowMs = Date.now();
+  const nowIso = new Date(nowMs).toISOString();
+  const current = previousAttempt || (await getLoginAttempts(supabase, key));
+
+  const previousFails = Number(current?.fails || 0);
+  const firstFailAtMs = new Date(current?.first_fail_at || 0).getTime();
+  const withinWindow =
+    Number.isFinite(firstFailAtMs) && firstFailAtMs > 0 && nowMs - firstFailAtMs <= LOGIN_ATTEMPT_WINDOW_MS;
+
+  const fails = withinWindow ? previousFails + 1 : 1;
+  const firstFailAt = withinWindow ? current.first_fail_at : nowIso;
+  const lockedUntil =
+    fails >= LOGIN_ATTEMPT_MAX_FAILS ? new Date(nowMs + LOGIN_ATTEMPT_LOCK_MS).toISOString() : null;
+
+  const { error } = await supabase.from("login_attempts").upsert(
+    {
+      key,
+      fails,
+      first_fail_at: firstFailAt,
+      locked_until: lockedUntil,
+      updated_at: nowIso,
+    },
+    { onConflict: "key" }
+  );
+
+  if (error && !isLoginAttemptsTableMissingError(error)) {
+    throw new Error(error.message || "Failed to update login attempts");
+  }
+
+  return {
+    key,
+    fails,
+    first_fail_at: firstFailAt,
+    locked_until: lockedUntil,
+  };
+}
+
+async function clearLoginAttempts(supabase, key) {
+  const { error } = await supabase.from("login_attempts").delete().eq("key", key);
+
+  if (error && !isLoginAttemptsTableMissingError(error)) {
+    throw new Error(error.message || "Failed to clear login attempts");
+  }
+}
+
 function createRequestId(req) {
   const fromHeader = req?.headers?.["x-request-id"];
   if (fromHeader) return String(fromHeader).slice(0, 128);
@@ -629,6 +727,11 @@ module.exports = {
   cookieSerialize,
   getSessionCookieValue,
   getClientIp,
+  buildLoginAttemptKey,
+  getLoginAttempts,
+  incrementLoginFail,
+  clearLoginAttempts,
+  isLocked,
   createRequestId,
   logEvent,
   writeAuditLog,
