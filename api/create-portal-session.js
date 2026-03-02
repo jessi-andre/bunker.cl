@@ -1,101 +1,61 @@
 const {
-  getStripe,
-  getBaseUrl,
-  getSupabaseAdmin,
-  setSecurityHeaders,
-  validateRequestOrigin,
-  requireJsonBody,
-  requireCsrf,
-  requireAuth,
-  requireTenant,
-  requireActivePlan,
   json,
-  logEvent,
+  getStripe,
+  getCompanyByReqHost,
+  getSupabaseAdmin,
+  getBaseUrl,
 } = require("./_lib");
 
-module.exports = async (req, res) => {
-  setSecurityHeaders(res);
-
-  if (!validateRequestOrigin(req, res)) {
-    return;
-  }
-
-  if (!requireJsonBody(req, res)) {
-    return;
-  }
-
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return json(res, 405, { error: "Method not allowed" });
   }
 
   try {
-    if (!requireCsrf(req, res)) {
-      return;
+    const company = await getCompanyByReqHost(req);
+    if (!company || !company.id) {
+      return json(res, 404, { error: "Company not found for host" });
     }
 
-    const authInfo = await requireAuth(req, res, { route: "/api/create-portal-session" });
-    if (!authInfo) return;
-
-    const company = await requireTenant(req, res, authInfo, {
-      route: "/api/create-portal-session",
-    });
-    if (!company) return;
-
-    await requireActivePlan(company.id);
-
-    const { email } = req.body || {};
-    if (!email || !String(email).includes("@")) {
-      return json(res, 400, {
-        error: "email válido es requerido",
-        request_id: authInfo.requestId,
-      });
-    }
-
-    const stripe = getStripe();
-    const baseUrl = getBaseUrl();
     const supabase = getSupabaseAdmin();
-    const normalizedEmail = String(email).toLowerCase().trim();
-
-    const { data: alumno, error } = await supabase
-      .from("alumnos")
-      .select("stripeCustomerId")
-      .eq("email", normalizedEmail)
-      .eq("company_id", company.id)
+    const { data, error } = await supabase
+      .from("companies")
+      .select("subscription_status, stripe_customer_id")
+      .eq("id", company.id)
       .maybeSingle();
 
     if (error) {
-      return json(res, 500, {
-        error: error.message || "Error buscando alumno",
-        request_id: authInfo.requestId,
+      throw new Error(error.message || "Database query failed");
+    }
+
+    if (!data) {
+      return json(res, 404, { error: "Company not found" });
+    }
+
+    const subscriptionStatus = String(data.subscription_status || "").toLowerCase();
+    const isActive = subscriptionStatus === "active" || subscriptionStatus === "trialing";
+
+    if (!isActive) {
+      return json(res, 403, {
+        code: "PLAN_INACTIVE",
+        subscription_status: data.subscription_status || null,
       });
     }
 
-    if (!alumno?.stripeCustomerId) {
-      return json(res, 404, {
-        error: "No encontramos una suscripción para ese email",
-        request_id: authInfo.requestId,
-      });
+    const stripeCustomerId = String(data.stripe_customer_id || "").trim();
+    if (!stripeCustomerId) {
+      return json(res, 409, { error: "Missing stripe_customer_id" });
     }
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: alumno.stripeCustomerId,
-      return_url: `${baseUrl}/index.html#planes`,
+    const stripe = getStripe();
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: `${getBaseUrl()}/index.html#planes`,
     });
 
-    logEvent({
-      request_id: authInfo.requestId,
-      route: "/api/create-portal-session",
-      company_id: company.id,
-      admin_id: authInfo.session.admin_id,
-      result: "ok",
-    });
-
-    return json(res, 200, { url: portalSession.url, request_id: authInfo.requestId });
-  } catch (error) {
-    if (error?.status === 402 || error?.message === "PLAN_INACTIVE") {
-      return json(res, 402, { code: "PLAN_INACTIVE" });
-    }
-
-    return json(res, 500, { error: error.message || "Error creando portal" });
+    return json(res, 200, { url: session.url });
+  } catch (err) {
+    return json(res, 500, { error: err?.message || "Internal server error" });
   }
 };
