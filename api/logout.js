@@ -3,7 +3,7 @@ const {
   getSupabaseAdmin,
   parseCookies,
   sha256Hex,
-  getExpiredSessionCookie,
+  cookieSerialize,
 } = require("./_lib");
 
 module.exports = async function handler(req, res) {
@@ -30,7 +30,15 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    res.setHeader("Set-Cookie", getExpiredSessionCookie());
+    const expiredSessionCookie = cookieSerialize("bunker_session", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    res.setHeader("Set-Cookie", expiredSessionCookie);
     return json(res, 200, { ok: true });
   } catch (error) {
     return json(res, 500, { error: error?.message || "Logout error" });
