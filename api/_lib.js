@@ -599,6 +599,69 @@ async function requireTenant(req, res, authInfo, opts = {}) {
   return company;
 }
 
+async function requireAuthAndTenant(req) {
+  const company = await getCompanyByReqHost(req);
+  if (!company?.id) {
+    const err = new Error("Company not found for host");
+    err.status = 404;
+    throw err;
+  }
+
+  const token = getSessionCookieValue(req);
+  if (!token) {
+    const err = new Error("No session");
+    err.status = 401;
+    throw err;
+  }
+
+  const tokenHash = sha256Hex(token);
+  const supabase = getSupabaseAdmin();
+
+  const { data: session, error } = await supabase
+    .from("admin_sessions")
+    .select("id, admin_id, company_id, expires_at")
+    .eq("token_hash", tokenHash)
+    .maybeSingle();
+
+  if (error) {
+    const err = new Error(error.message || "Failed to validate session");
+    err.status = 500;
+    throw err;
+  }
+
+  if (!session) {
+    const err = new Error("No session");
+    err.status = 401;
+    throw err;
+  }
+
+  const expiresAtMs = new Date(session.expires_at).getTime();
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+    try {
+      await supabase.from("admin_sessions").delete().eq("id", session.id);
+    } catch (_) {}
+    const err = new Error("Session expired");
+    err.status = 401;
+    throw err;
+  }
+
+  if (String(session.company_id) !== String(company.id)) {
+    const err = new Error("Tenant mismatch");
+    err.status = 403;
+    throw err;
+  }
+
+  return {
+    company,
+    session: {
+      id: session.id,
+      admin_id: session.admin_id,
+      company_id: session.company_id,
+      expires_at: session.expires_at,
+    },
+  };
+}
+
 function createCsrfToken() {
   return randomToken(32);
 }
@@ -745,6 +808,7 @@ module.exports = {
   writeAuditLog,
   requireAuth,
   requireTenant,
+  requireAuthAndTenant,
   createCsrfToken,
   setCsrfCookie,
   requireCsrf,

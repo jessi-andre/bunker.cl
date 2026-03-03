@@ -1,11 +1,4 @@
-const {
-  validateRequestOrigin,
-  requireAuth,
-  requireTenant,
-  getSupabaseAdmin,
-  json,
-  logEvent,
-} = require("./_lib");
+const { validateRequestOrigin, requireAuthAndTenant, json } = require("./_lib");
 
 module.exports = async (req, res) => {
   if (!validateRequestOrigin(req, res, { enforceForAllMethods: true })) {
@@ -16,49 +9,19 @@ module.exports = async (req, res) => {
     return json(res, 405, { error: "Method not allowed" });
   }
 
+  if (req?.query?.company_id || req?.body?.company_id) {
+    return json(res, 400, { error: "company_id is not allowed" });
+  }
+
   try {
-    const authInfo = await requireAuth(req, res, { route: "/api/test-cookie" });
-    if (!authInfo) return;
-
-    const company = await requireTenant(req, res, authInfo, { route: "/api/test-cookie" });
-    if (!company) return;
-    if (!company.id) return;
-
-    const supabase = getSupabaseAdmin();
-    const { data: companyRow, error: companyError } = await supabase
-      .from("companies")
-      .select("subscription_status")
-      .eq("id", company.id)
-      .maybeSingle();
-
-    if (companyError) {
-      throw new Error(companyError.message);
-    }
-
-    const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
-    if (!["active", "trialing"].includes(subscriptionStatus)) {
-      return json(res, 402, {
-        error: "subscription_inactive",
-        status: companyRow?.subscription_status ?? null,
-      });
-    }
-
-    json(res, 200, {
-      admin_id: authInfo.session.admin_id,
-      company_id: authInfo.session.company_id,
-      request_id: authInfo.requestId,
+    const { company, session } = await requireAuthAndTenant(req);
+    return json(res, 200, {
+      ok: true,
+      company_id: company.id,
+      admin_id: session.admin_id,
     });
-
-    logEvent({
-      request_id: authInfo.requestId,
-      route: "/api/test-cookie",
-      company_id: authInfo.session.company_id,
-      admin_id: authInfo.session.admin_id,
-      result: "ok",
-    });
-
-    return;
   } catch (error) {
-    return json(res, 500, { error: error.message || "Session check error" });
+    const status = Number(error?.status) || 500;
+    return json(res, status, { error: error?.message || "Auth check error" });
   }
 };
