@@ -49,7 +49,6 @@ const ctaWhatsapp = document.querySelectorAll(".js-cta-whatsapp");
 const ctaMaps = document.querySelectorAll(".js-cta-maps");
 const ctaPhone = document.querySelectorAll(".js-cta-phone");
 
-let pendingCheckoutUrl = "";
 let selectedPlanId = "";
 let lastScrollY = window.scrollY;
 
@@ -111,13 +110,13 @@ const trackEvent = (name, params = {}) => {
   }
 };
 
-const createCheckoutSession = async ({ planId, email }) => {
-  const response = await fetch("/api/create-checkout-session", {
+const createCheckoutSession = async ({ plan, email }) => {
+  const response = await fetch("/api/public-create-checkout-session", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ planId, email }),
+    body: JSON.stringify({ plan, email }),
   });
 
   if (!response.ok) {
@@ -200,7 +199,6 @@ const closeModal = () => {
   if (!modal) return;
   modal.hidden = true;
   document.body.style.overflow = "";
-  pendingCheckoutUrl = "";
 };
 
 planButtons.forEach((button) => {
@@ -209,7 +207,6 @@ planButtons.forEach((button) => {
     if (!details) return;
 
     selectedPlanId = details.id;
-    pendingCheckoutUrl = "/api/create-checkout-session";
     renderPlanSummary(details);
     trackEvent("select_plan", { plan_id: details.id, price: details.price });
     openModal();
@@ -217,7 +214,7 @@ planButtons.forEach((button) => {
 });
 
 modalConfirm?.addEventListener("click", async () => {
-  if (!pendingCheckoutUrl || !selectedPlanId) return closeModal();
+  if (!selectedPlanId) return closeModal();
 
   const email = checkoutEmailInput?.value?.trim() || "";
   if (!checkoutEmailInput?.checkValidity()) {
@@ -230,7 +227,7 @@ modalConfirm?.addEventListener("click", async () => {
 
   try {
     trackEvent("begin_checkout", { plan_id: selectedPlanId, method: "stripe" });
-    const { url } = await createCheckoutSession({ planId: selectedPlanId, email });
+    const { url } = await createCheckoutSession({ plan: selectedPlanId, email });
     if (!url) throw new Error("Checkout no disponible.");
     window.location.href = url;
   } catch (error) {
