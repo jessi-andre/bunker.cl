@@ -1,7 +1,8 @@
 const {
   getStripe,
-  getCompanyByReqHost,
-  setSecurityHeaders,
+  requireAuthAndTenant,
+  getSupabaseAdmin,
+  getBaseUrl,
   validateRequestOrigin,
   requireJsonBody,
   json,
@@ -9,33 +10,7 @@ const {
   logEvent,
 } = require("./_lib");
 
-function getDomainFromReq(req) {
-  // 1) Intentamos desde Origin
-  const origin = req.headers.origin;
-  if (origin) {
-    try {
-      return new URL(origin).host; // ej: bunker-cl.vercel.app
-    } catch (e) {}
-  }
-
-  // 2) Si no hay origin, usamos referer
-  const referer = req.headers.referer;
-  if (referer) {
-    try {
-      return new URL(referer).host;
-    } catch (e) {}
-  }
-
-  // 3) Fallback: host del request
-  const host = req.headers.host;
-  if (host) return host;
-
-  return null;
-}
-
 module.exports = async (req, res) => {
-  setSecurityHeaders(res);
-
   if (!validateRequestOrigin(req, res)) {
     return;
   }
@@ -50,28 +25,25 @@ module.exports = async (req, res) => {
 
   try {
     const requestId = createRequestId(req);
+    const { company, session } = await requireAuthAndTenant(req);
+    const supabase = getSupabaseAdmin();
 
     const stripe = getStripe();
-
-    // 1) Detectar dominio
-    const domain = getDomainFromReq(req);
-    if (!domain) {
-      return json(res, 400, { error: "Could not detect domain", request_id: requestId });
-    }
-
-    // 2) Buscar company por host
-    const company = await getCompanyByReqHost(req);
-    if (!company?.id) {
-      return json(res, 404, {
-        error: "Company not found for host",
-        request_id: requestId,
-      });
-    }
-
-    // 3) Leer planId del body
-    const { planId, success_url, cancel_url, customer_email, email } = req.body || {};
+    const { planId, customer_email, email } = req.body || {};
     if (!planId) {
       return json(res, 400, { error: "Missing planId", request_id: requestId });
+    }
+
+    if (req?.query?.company_id || req?.body?.company_id) {
+      return json(res, 400, { error: "company_id is not allowed", request_id: requestId });
+    }
+
+    if (req?.query?.customer_id || req?.body?.customer_id) {
+      return json(res, 400, { error: "customer_id is not allowed", request_id: requestId });
+    }
+
+    if (req?.query?.price_id || req?.body?.price_id) {
+      return json(res, 400, { error: "price_id is not allowed", request_id: requestId });
     }
 
     if (!process.env.STRIPE_PRICE_ID_STARTER || !process.env.STRIPE_PRICE_ID_PRO || !process.env.STRIPE_PRICE_ID_ELITE) {
@@ -95,36 +67,47 @@ module.exports = async (req, res) => {
 
     const plan = String(planId).toLowerCase();
     const normalizedEmail = String(customer_email || email || "").trim().toLowerCase();
+    const baseUrl = getBaseUrl();
 
-    // 4) Crear Checkout Session con metadata
-    const session = await stripe.checkout.sessions.create({
+    const { data: subData, error: subError } = await supabase
+      .from("company_subscriptions")
+      .select("stripe_customer_id")
+      .eq("company_id", company.id)
+      .maybeSingle();
+
+    if (subError) {
+      return json(res, 500, { error: "Database query failed", request_id: requestId });
+    }
+
+    const stripeCustomerId = String(subData?.stripe_customer_id || "").trim();
+
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price, quantity: 1 }],
-      success_url:
-        success_url ||
-        `https://${domain}/gracias.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancel_url || `https://${domain}/index.html#planes`,
-
-      //  permitir que el usuario escriba su mail:
-      customer_email: normalizedEmail || undefined,
-
+      success_url: `${baseUrl}/gracias.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/index.html#planes`,
+      customer: stripeCustomerId || undefined,
+      customer_email: stripeCustomerId ? undefined : (normalizedEmail || undefined),
       subscription_data: {
         metadata: {
           company_id: String(company.id),
           plan,
-          email: normalizedEmail,
+          email: normalizedEmail || null,
+          admin_id: String(session.admin_id),
         },
       },
-
       metadata: {
-        ...(req.body?.metadata || {}),
         company_id: String(company.id),
+        admin_id: String(session.admin_id),
         plan,
-        email: normalizedEmail,
+        email: normalizedEmail || null,
         planId: String(planId),
-        companyId: String(company.id),
-        domain: String(domain),
       },
+    });
+
+    console.log("checkout_session_created", {
+      company_id: company.id,
+      admin_id: session.admin_id,
     });
 
     logEvent({
@@ -134,8 +117,9 @@ module.exports = async (req, res) => {
       result: "ok",
     });
 
-    return json(res, 200, { url: session.url, request_id: requestId });
+    return json(res, 200, { url: checkoutSession.url, request_id: requestId });
   } catch (err) {
-    return json(res, 500, { error: err.message || "Server error" });
+    const status = Number(err?.status) || 500;
+    return json(res, status, { error: err.message || "Server error" });
   }
 };
