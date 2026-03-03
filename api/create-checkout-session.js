@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
       return json(res, 400, { error: "customer_id is not allowed", request_id: requestId });
     }
 
-    if (req?.query?.price_id || req?.body?.price_id) {
+    if (req?.query?.price_id || req?.body?.price_id || req?.body?.priceId) {
       return json(res, 400, { error: "price_id is not allowed", request_id: requestId });
     }
 
