@@ -1,7 +1,7 @@
 const {
   json,
   getStripe,
-  getCompanyByReqHost,
+  requireAuthAndTenant,
   getSupabaseAdmin,
   getBaseUrl,
 } = require("./_lib");
@@ -13,49 +13,38 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const company = await getCompanyByReqHost(req);
-    if (!company || !company.id) {
-      return json(res, 404, { error: "Company not found for host" });
-    }
+    const { company, session } = await requireAuthAndTenant(req);
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from("companies")
-      .select("subscription_status, stripe_customer_id")
-      .eq("id", company.id)
+      .from("company_subscriptions")
+      .select("stripe_customer_id")
+      .eq("company_id", company.id)
       .maybeSingle();
 
     if (error) {
-      throw new Error(error.message || "Database query failed");
+      return json(res, 500, { error: error.message || "Database query failed" });
     }
 
-    if (!data) {
-      return json(res, 404, { error: "Company not found" });
-    }
-
-    const subscriptionStatus = String(data.subscription_status || "").toLowerCase();
-    const isActive = subscriptionStatus === "active" || subscriptionStatus === "trialing";
-
-    if (!isActive) {
-      return json(res, 403, {
-        code: "PLAN_INACTIVE",
-        subscription_status: data.subscription_status || null,
-      });
-    }
-
-    const stripeCustomerId = String(data.stripe_customer_id || "").trim();
+    const stripeCustomerId = String(data?.stripe_customer_id || "").trim();
     if (!stripeCustomerId) {
-      return json(res, 409, { error: "Missing stripe_customer_id" });
+      return json(res, 409, { error: "NO_STRIPE_CUSTOMER" });
     }
 
     const stripe = getStripe();
-    const session = await stripe.billingPortal.sessions.create({
+    const portalSession = await stripe.billingPortal.sessions.create({
       customer: stripeCustomerId,
       return_url: `${getBaseUrl()}/index.html#planes`,
     });
 
-    return json(res, 200, { url: session.url });
+    console.log("portal_session_created", {
+      company_id: company.id,
+      admin_id: session.admin_id,
+    });
+
+    return json(res, 200, { url: portalSession.url });
   } catch (err) {
-    return json(res, 500, { error: err?.message || "Internal server error" });
+    const status = Number(err?.status) || 500;
+    return json(res, status, { error: err?.message || "Internal server error" });
   }
 };

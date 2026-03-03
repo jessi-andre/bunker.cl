@@ -1,4 +1,9 @@
-const { validateRequestOrigin, requireAuthAndTenant, json } = require("./_lib");
+const {
+  validateRequestOrigin,
+  requireAuthAndTenant,
+  getSupabaseAdmin,
+  json,
+} = require("./_lib");
 
 module.exports = async (req, res) => {
   if (!validateRequestOrigin(req, res, { enforceForAllMethods: true })) {
@@ -15,6 +20,26 @@ module.exports = async (req, res) => {
 
   try {
     const { company, session } = await requireAuthAndTenant(req);
+
+    const supabase = getSupabaseAdmin();
+    const { data: companyRow, error: companyError } = await supabase
+      .from("companies")
+      .select("subscription_status")
+      .eq("id", company.id)
+      .maybeSingle();
+
+    if (companyError) {
+      return json(res, 500, { error: "Subscription check error" });
+    }
+
+    const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
+    if (!["active", "trialing"].includes(subscriptionStatus)) {
+      return json(res, 402, {
+        error: "subscription_inactive",
+        status: companyRow?.subscription_status ?? null,
+      });
+    }
+
     return json(res, 200, {
       ok: true,
       company_id: company.id,
