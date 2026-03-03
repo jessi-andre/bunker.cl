@@ -6,7 +6,7 @@ const {
   requireCsrf,
   requireAuthAndTenant,
   json,
-} = require("./_lib");
+} = require("../lib/_lib");
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);

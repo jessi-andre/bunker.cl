@@ -8,7 +8,7 @@ const {
   json,
   createRequestId,
   logEvent,
-} = require("./_lib");
+} = require("../lib/_lib");
 
 module.exports = async (req, res) => {
   if (!validateRequestOrigin(req, res)) {

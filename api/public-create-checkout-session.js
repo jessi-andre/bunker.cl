@@ -6,7 +6,7 @@ const {
   validateRequestOrigin,
   requireJsonBody,
   json,
-} = require("./_lib");
+} = require("../lib/_lib");
 
 const isMissingAlumnosTable = (error) =>
   /relation .*alumnos.* does not exist|Could not find the table/i.test(

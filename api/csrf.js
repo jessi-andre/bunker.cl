@@ -5,7 +5,7 @@ const {
   setCsrfCookie,
   json,
   createRequestId,
-} = require("./_lib");
+} = require("../lib/_lib");
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);

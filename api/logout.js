@@ -4,7 +4,7 @@ const {
   parseCookies,
   sha256Hex,
   cookieSerialize,
-} = require("./_lib");
+} = require("../lib/_lib");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {

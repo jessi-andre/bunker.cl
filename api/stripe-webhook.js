@@ -1,4 +1,4 @@
-const { json, getStripe, getSupabaseAdmin } = require("./_lib");
+const { json, getStripe, getSupabaseAdmin } = require("../lib/_lib");
 
 const readRawBody = (req) =>
   new Promise((resolve, reject) => {
