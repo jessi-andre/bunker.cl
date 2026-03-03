@@ -33,13 +33,14 @@ module.exports = async (req, res) => {
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
-    const company = await getCompanyByReqHost(req);
-    if (!company?.id) {
-      return json(res, 404, { error: "Company not found for host" });
-    }
+    let targetCompanyId = company_id ? String(company_id) : null;
 
-    if (company_id && String(company_id) !== String(company.id)) {
-      return json(res, 403, { error: "company_id does not match host company" });
+    if (!targetCompanyId) {
+      const company = await getCompanyByReqHost(req);
+      if (!company?.id) {
+        return json(res, 404, { error: "Company not found for host" });
+      }
+      targetCompanyId = String(company.id);
     }
 
     const passwordHash = await bcrypt.hash(String(new_password), 10);
@@ -49,7 +50,7 @@ module.exports = async (req, res) => {
       .from("company_admins")
       .update({ password_hash: passwordHash })
       .eq("email", normalizedEmail)
-      .eq("company_id", company.id)
+      .eq("company_id", targetCompanyId)
       .select("id")
       .limit(1);
 
