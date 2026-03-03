@@ -29,9 +29,10 @@ module.exports = async (req, res) => {
     const supabase = getSupabaseAdmin();
 
     const stripe = getStripe();
-    const { planId, customer_email, email } = req.body || {};
-    if (!planId) {
-      return json(res, 400, { error: "Missing planId", request_id: requestId });
+    const { plan, planId, customer_email, email } = req.body || {};
+    const requestedPlan = String(plan || planId || "").toLowerCase().trim();
+    if (!requestedPlan) {
+      return json(res, 400, { error: "Missing plan", request_id: requestId });
     }
 
     if (req?.query?.company_id || req?.body?.company_id) {
@@ -53,19 +54,18 @@ module.exports = async (req, res) => {
       });
     }
 
-    
- const priceByPlan = {
-  starter: process.env.STRIPE_PRICE_ID_STARTER,
-  pro: process.env.STRIPE_PRICE_ID_PRO,
-  elite: process.env.STRIPE_PRICE_ID_ELITE,
-};
+    const priceByPlan = {
+      starter: process.env.STRIPE_PRICE_ID_STARTER,
+      pro: process.env.STRIPE_PRICE_ID_PRO,
+      elite: process.env.STRIPE_PRICE_ID_ELITE,
+    };
 
-    const price = priceByPlan[String(planId).toLowerCase()];
+    const price = priceByPlan[requestedPlan];
     if (!price) {
-      return json(res, 400, { error: `Unknown planId: ${planId}`, request_id: requestId });
+      return json(res, 400, { error: `Unknown plan: ${requestedPlan}`, request_id: requestId });
     }
 
-    const plan = String(planId).toLowerCase();
+    const normalizedPlan = requestedPlan;
     const normalizedEmail = String(customer_email || email || "").trim().toLowerCase();
     const baseUrl = getBaseUrl();
 
@@ -91,7 +91,7 @@ module.exports = async (req, res) => {
       subscription_data: {
         metadata: {
           company_id: String(company.id),
-          plan,
+          plan: normalizedPlan,
           email: normalizedEmail || null,
           admin_id: String(session.admin_id),
         },
@@ -99,9 +99,9 @@ module.exports = async (req, res) => {
       metadata: {
         company_id: String(company.id),
         admin_id: String(session.admin_id),
-        plan,
+        plan: normalizedPlan,
         email: normalizedEmail || null,
-        planId: String(planId),
+        planId: normalizedPlan,
       },
     });
 
