@@ -14,7 +14,6 @@ const {
   writeAuditLog,
 } = require("../lib/_lib");
 
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 5;
 
 module.exports = async (req, res) => {
@@ -51,61 +50,21 @@ module.exports = async (req, res) => {
 
     const normalizedEmail = String(email).toLowerCase().trim();
     const ip = getClientIp(req);
-    const loginKey = sha256Hex(`${company.id}|${ip}`);
-    const nowMs = Date.now();
-    const nowIso = new Date(nowMs).toISOString();
+    const windowStartIso = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
-    const { data: loginAttempt, error: attemptsError } = await supabase
+    const { count: failedAttempts, error: attemptsError } = await supabase
       .from("login_attempts")
-      .select("key, attempts, first_attempt_at, locked_until")
-      .eq("key", loginKey)
-      .maybeSingle();
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", company.id)
+      .eq("ip", ip)
+      .gt("created_at", windowStartIso);
 
     if (attemptsError) {
       return sendJson(500, { error: attemptsError.message || "Rate limit error" });
     }
 
-    const lockedUntilMs = new Date(loginAttempt?.locked_until || 0).getTime();
-    if (Number.isFinite(lockedUntilMs) && lockedUntilMs > nowMs) {
-      const retryAfterSeconds = Math.max(1, Math.ceil((lockedUntilMs - nowMs) / 1000));
-      await writeAuditLog({
-        request_id: requestId,
-        route: "/api/login",
-        company_id: company.id,
-        action: "login",
-        result: "reject",
-        error_code: "LOGIN_LOCKED",
-        metadata: { ip },
-      });
-      return sendJson(429, { error: "Too many attempts", retry_after_seconds: retryAfterSeconds });
-    }
-
-    const firstAttemptAtMs = new Date(loginAttempt?.first_attempt_at || 0).getTime();
-    const withinWindow =
-      Number.isFinite(firstAttemptAtMs) &&
-      firstAttemptAtMs > 0 &&
-      nowMs - firstAttemptAtMs <= LOGIN_WINDOW_MS;
-    const attemptsInWindow = withinWindow ? Number(loginAttempt?.attempts || 0) : 0;
-
-    if (attemptsInWindow >= LOGIN_MAX_ATTEMPTS) {
-      const retryAfterSeconds = Math.max(
-        1,
-        Math.ceil((firstAttemptAtMs + LOGIN_WINDOW_MS - nowMs) / 1000)
-      );
-      const lockUntilIso = new Date(nowMs + retryAfterSeconds * 1000).toISOString();
-
-      await supabase.from("login_attempts").upsert(
-        {
-          key: loginKey,
-          attempts: attemptsInWindow,
-          first_attempt_at: loginAttempt?.first_attempt_at || nowIso,
-          locked_until: lockUntilIso,
-          updated_at: nowIso,
-        },
-        { onConflict: "key" }
-      );
-
-      return sendJson(429, { error: "Too many attempts", retry_after_seconds: retryAfterSeconds });
+    if (Number(failedAttempts || 0) >= LOGIN_MAX_ATTEMPTS) {
+      return sendJson(429, { error: "Too many attempts" });
     }
 
     const { data: admin, error } = await supabase
@@ -132,21 +91,10 @@ module.exports = async (req, res) => {
         return sendJson(500, { error: otherTenantError.message });
       }
 
-      const nextAttempts = withinWindow ? attemptsInWindow + 1 : 1;
-      const firstAttemptAt = withinWindow ? loginAttempt.first_attempt_at : nowIso;
-      const lockUntilIso =
-        nextAttempts >= LOGIN_MAX_ATTEMPTS ? new Date(nowMs + LOGIN_WINDOW_MS).toISOString() : null;
-
-      await supabase.from("login_attempts").upsert(
-        {
-          key: loginKey,
-          attempts: nextAttempts,
-          first_attempt_at: firstAttemptAt,
-          locked_until: lockUntilIso,
-          updated_at: nowIso,
-        },
-        { onConflict: "key" }
-      );
+      await supabase.from("login_attempts").insert({
+        company_id: company.id,
+        ip,
+      });
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -166,21 +114,10 @@ module.exports = async (req, res) => {
 
     const validPassword = await bcrypt.compare(String(password), admin.password_hash);
     if (!validPassword) {
-      const nextAttempts = withinWindow ? attemptsInWindow + 1 : 1;
-      const firstAttemptAt = withinWindow ? loginAttempt.first_attempt_at : nowIso;
-      const lockUntilIso =
-        nextAttempts >= LOGIN_MAX_ATTEMPTS ? new Date(nowMs + LOGIN_WINDOW_MS).toISOString() : null;
-
-      await supabase.from("login_attempts").upsert(
-        {
-          key: loginKey,
-          attempts: nextAttempts,
-          first_attempt_at: firstAttemptAt,
-          locked_until: lockUntilIso,
-          updated_at: nowIso,
-        },
-        { onConflict: "key" }
-      );
+      await supabase.from("login_attempts").insert({
+        company_id: company.id,
+        ip,
+      });
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -194,7 +131,7 @@ module.exports = async (req, res) => {
       return sendJson(401, { error: "Credenciales invalidas" });
     }
 
-    await supabase.from("login_attempts").delete().eq("key", loginKey);
+    await supabase.from("login_attempts").delete().eq("company_id", company.id).eq("ip", ip);
 
     const token = randomToken(32);
     const tokenHash = sha256Hex(token);
