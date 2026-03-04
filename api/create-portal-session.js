@@ -13,13 +13,13 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { company, session } = await requireAuthAndTenant(req);
+    const { company, company_id, admin_id } = await requireAuthAndTenant(req);
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("company_subscriptions")
       .select("stripe_customer_id")
-      .eq("company_id", company.id)
+      .eq("company_id", company_id)
       .maybeSingle();
 
     if (error) {
@@ -38,8 +38,8 @@ module.exports = async function handler(req, res) {
     });
 
     console.log("portal_session_created", {
-      company_id: company.id,
-      admin_id: session.admin_id,
+      company_id: company_id || company?.id,
+      admin_id,
     });
 
     return json(res, 200, { url: portalSession.url });

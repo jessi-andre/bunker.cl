@@ -4,8 +4,8 @@ const {
   validateRequestOrigin,
   requireJsonBody,
   requireCsrf,
-  requireAuth,
-  requireTenant,
+  requireAuthAndTenant,
+  createRequestId,
   json,
   writeAuditLog,
 } = require("../lib/_lib");
@@ -30,11 +30,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const authInfo = await requireAuth(req, res, { route: "/api/revoke-my-sessions" });
-    if (!authInfo) return;
-
-    const company = await requireTenant(req, res, authInfo, { route: "/api/revoke-my-sessions" });
-    if (!company) return;
+    const requestId = createRequestId(req);
+    const { company, company_id, admin_id, session } = await requireAuthAndTenant(req);
+    const resolvedCompanyId = company_id || company?.id;
 
     const supabase = getSupabaseAdmin();
     const revokedAt = new Date().toISOString();
@@ -42,35 +40,36 @@ module.exports = async (req, res) => {
     const { error: updateError } = await supabase
       .from("company_admins")
       .update({ sessions_revoked_at: revokedAt })
-      .eq("id", authInfo.session.admin_id)
-      .eq("company_id", company.id);
+      .eq("id", admin_id)
+      .eq("company_id", resolvedCompanyId);
 
     if (updateError) {
-      return json(res, 500, { error: updateError.message, request_id: authInfo.requestId });
+      return json(res, 500, { error: updateError.message, request_id: requestId });
     }
 
     const { error: deleteError } = await supabase
       .from("admin_sessions")
       .delete()
-      .eq("admin_id", authInfo.session.admin_id)
-      .eq("company_id", company.id)
-      .neq("id", authInfo.session.id);
+      .eq("admin_id", admin_id)
+      .eq("company_id", resolvedCompanyId)
+      .neq("id", session.id);
 
     if (deleteError) {
-      return json(res, 500, { error: deleteError.message, request_id: authInfo.requestId });
+      return json(res, 500, { error: deleteError.message, request_id: requestId });
     }
 
     await writeAuditLog({
-      request_id: authInfo.requestId,
+      request_id: requestId,
       route: "/api/revoke-my-sessions",
-      company_id: company.id,
-      admin_id: authInfo.session.admin_id,
+      company_id: resolvedCompanyId,
+      admin_id,
       action: "revoke_my_sessions",
       result: "ok",
     });
 
-    return json(res, 200, { ok: true, request_id: authInfo.requestId });
+    return json(res, 200, { ok: true, request_id: requestId });
   } catch (error) {
-    return json(res, 500, { error: error.message || "Revoke error" });
+    const status = Number(error?.status) || 500;
+    return json(res, status, { error: error?.message || "Revoke error" });
   }
 };

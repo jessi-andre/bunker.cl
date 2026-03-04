@@ -32,21 +32,21 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { company, session } = await requireAuthAndTenant(req);
+    const { company, company_id, admin_id } = await requireAuthAndTenant(req);
     const supabase = getSupabaseAdmin();
 
     const { error } = await supabase
       .from("admin_sessions")
       .delete()
-      .eq("company_id", company.id);
+      .eq("company_id", company_id || company?.id);
 
     if (error) {
       return json(res, 500, { error: error.message || "Revoke error" });
     }
 
     console.log("company_sessions_revoked", {
-      company_id: company.id,
-      admin_id: session.admin_id,
+      company_id: company_id || company?.id,
+      admin_id,
     });
 
     return json(res, 200, { ok: true });
