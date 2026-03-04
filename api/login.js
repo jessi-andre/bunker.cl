@@ -49,6 +49,7 @@ module.exports = async (req, res) => {
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
+    const host = String(req?.headers?.host || "");
     const ip = getClientIp(req);
     const windowStartIso = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
@@ -57,13 +58,16 @@ module.exports = async (req, res) => {
       .select("id", { count: "exact", head: true })
       .eq("company_id", company.id)
       .eq("ip", ip)
-      .gt("created_at", windowStartIso);
+      .gt("updated_at", windowStartIso);
 
     if (attemptsError) {
       return sendJson(500, { error: attemptsError.message || "Rate limit error" });
     }
 
-    if (Number(failedAttempts || 0) >= LOGIN_MAX_ATTEMPTS) {
+    const cnt = Number(failedAttempts || 0);
+    console.log("rateLimit", { host, company_id: company.id, ip, cnt });
+
+    if (cnt >= LOGIN_MAX_ATTEMPTS) {
       return sendJson(429, { error: "Too many attempts" });
     }
 
@@ -94,6 +98,7 @@ module.exports = async (req, res) => {
       await supabase.from("login_attempts").insert({
         company_id: company.id,
         ip,
+        updated_at: new Date().toISOString(),
       });
       await writeAuditLog({
         request_id: requestId,
@@ -117,6 +122,7 @@ module.exports = async (req, res) => {
       await supabase.from("login_attempts").insert({
         company_id: company.id,
         ip,
+        updated_at: new Date().toISOString(),
       });
       await writeAuditLog({
         request_id: requestId,
