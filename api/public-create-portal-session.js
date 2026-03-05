@@ -1,5 +1,6 @@
 const {
   getStripe,
+  getSupabaseAdmin,
   getCompanyByReqHost,
   validateRequestOrigin,
   requireJsonBody,
@@ -39,6 +40,18 @@ module.exports = async (req, res) => {
 
     const customer = customers?.data?.[0] || null;
     if (!customer?.id) {
+      return json(res, 404, { error: "customer not found" });
+    }
+
+    // Verificar que el customer pertenece a esta company
+    const { data: companyCheck } = await getSupabaseAdmin()
+      .from("companies")
+      .select("id")
+      .eq("id", company.id)
+      .eq("stripe_customer_id", customer.id)
+      .maybeSingle();
+
+    if (!companyCheck?.id) {
       return json(res, 404, { error: "customer not found" });
     }
 
