@@ -1,26 +1,26 @@
 const MAPS = {
-  google: "https://www.google.com/maps/search/?api=1&query=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
-  apple: "http://maps.apple.com/?q=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile",
+  google: "https://www.google.com/maps/search/?api=1&query=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile",
+  apple: "http://maps.apple.com/?q=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile",
 };
 
 const PLAN_CATALOG = {
   starter: {
     id: "starter",
     name: "Starter",
-    price: "$39.990 CLP / mes",
-    includes: ["2 sesiones semanales", "Evaluación inicial", "Soporte por WhatsApp"],
+    price: "$29.990 CLP / mes",
+    includes: ["2 sesiones de entrenamiento semanales", "Evaluación inicial de composición corporal", "Plan de entrenamiento personalizado", "Soporte por WhatsApp"],
   },
   pro: {
     id: "pro",
     name: "Pro",
-    price: "$59.990 CLP / mes",
-    includes: ["3 sesiones semanales", "Plan personalizado", "Seguimiento semanal"],
+    price: "$49.990 CLP / mes",
+    includes: ["3 sesiones de entrenamiento semanales", "Plan nutricional personalizado con nutricionista", "Seguimiento semanal de métricas y avance", "Ajuste mensual de plan según evolución", "Soporte prioritario por WhatsApp"],
   },
   elite: {
     id: "elite",
     name: "Elite",
     price: "$79.990 CLP / mes",
-    includes: ["4 sesiones semanales", "Seguimiento integral", "Revisión de progreso"],
+    includes: ["4 sesiones de entrenamiento semanales", "Nutrición deportiva con seguimiento semanal", "Kinesiología y evaluación funcional mensual", "Revisión integral de progreso", "Acceso directo a todo el equipo"],
   },
 };
 

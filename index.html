@@ -3,466 +3,774 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Modu Ñuñoa | Entrenamiento, Nutrición y Kinesiología</title>
-    <meta
-      name="description"
-      content="Centro en Ñuñoa con entrenamiento personalizado, nutricionista y kinesiología. Cupos mensuales limitados para trabajo personalizado."
-    />
-    <link rel="canonical" href="https://jessi-andre.github.io/bunker.cl/" />
-    <meta property="og:title" content="Modu Ñuñoa | Entrenamiento + Nutrición + Kinesiología" />
-    <meta
-      property="og:description"
-      content="Inscribite y elegí tu plan. Entrenamiento, nutrición y kinesiología según nivel."
-    />
-    <meta property="og:image" content="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80" />
+    <title>MODU | Entrenamiento · Nutrición · Kinesiología — Santiago, Chile</title>
+    <meta name="description" content="Centro de alto rendimiento en Providencia, Santiago. Entrenamiento personalizado, nutrición deportiva y kinesiología. Cupos limitados para trabajo real." />
+    <link rel="canonical" href="https://moduapp.vercel.app" />
+    <meta property="og:title" content="MODU | Entrenamiento + Nutrición + Kinesiología" />
+    <meta property="og:description" content="Centro premium en Santiago. Resultados reales con seguimiento personalizado." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://jessi-andre.github.io/bunker.cl/" />
-    <meta property="og:site_name" content="Modu Ñuñoa" />
+    <meta property="og:url" content="https://moduapp.vercel.app" />
+    <meta property="og:site_name" content="MODU" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Modu Ñuñoa | Entrenamiento + Nutrición + Kinesiología" />
-    <meta name="twitter:description" content="Planes mensuales con seguimiento personalizado en Ñuñoa." />
-    <meta
-      name="twitter:image"
-      content="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80"
-    />
+    <meta name="twitter:title" content="MODU | Entrenamiento + Nutrición + Kinesiología" />
+    <meta name="twitter:description" content="Centro premium en Santiago. Resultados reales con seguimiento personalizado." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80" />
     <link rel="icon" href="favicon.ico" />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SportsActivityLocation",
-        "name": "Modu",
-        "url": "https://example.com",
+        "name": "MODU",
+        "url": "https://moduapp.vercel.app",
         "telephone": "+56 9 5809 0338",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Matta Oriente 408",
-          "addressLocality": "Ñuñoa",
+          "streetAddress": "Av. Providencia 1234",
+          "addressLocality": "Providencia",
           "addressRegion": "Región Metropolitana",
           "addressCountry": "CL"
         },
         "geo": {
           "@type": "GeoCoordinates",
-          "latitude": "-33.000000",
-          "longitude": "-70.000000"
+          "latitude": "-33.4315",
+          "longitude": "-70.6101"
         },
-        "openingHours": "Mo-Fr 07:00-21:00",
+        "openingHoursSpecification": [
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "06:00", "closes": "22:00" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "14:00" }
+        ],
         "sameAs": ["https://www.instagram.com/bunker.htc/"]
       }
     </script>
 
-    <script>
-      /* Meta Pixel placeholder - PEGAR ID AQUÍ
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', 'PEGAR_ID_AQUI');
-      fbq('track', 'PageView');
-      */
-    </script>
+    <style>
+      /* ===== RESET ===== */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: #0a0a0a;
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      img { max-width: 100%; display: block; }
+      a { color: inherit; text-decoration: none; }
+      ul { list-style: none; }
+      button { cursor: pointer; font-family: inherit; }
 
-    <script>
-      /* GA4 placeholder - PEGAR ID AQUÍ
-      Cargar script: https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-      */
-    </script>
+      /* ===== TOKENS ===== */
+      :root {
+        --bg: #0a0a0a;
+        --bg-2: #111111;
+        --bg-3: #1a1a1a;
+        --border: rgba(255,255,255,0.08);
+        --accent: #a8ff3e;
+        --radius: 12px;
+        --radius-lg: 20px;
+        --header-h: 64px;
+        --max-w: 1180px;
+        --t: 0.2s ease;
+      }
 
-    <link rel="stylesheet" href="styles.css?v=20260216-4" />
+      /* ===== LAYOUT ===== */
+      .container { width: 100%; max-width: var(--max-w); margin: 0 auto; padding: 0 1.25rem; }
+      .section { padding: 5rem 0; }
+      @media (min-width: 768px) { .section { padding: 7rem 0; } }
+      .section-dark { background: var(--bg-2); }
+
+      /* ===== SKIP ===== */
+      .skip-link { position: absolute; left: -9999px; top: auto; background: var(--accent); color: #000; padding: 0.5rem 1rem; font-weight: 700; z-index: 9999; }
+      .skip-link:focus { left: 1rem; top: 1rem; }
+
+      /* ===== TYPE ===== */
+      h1 { font-size: clamp(2.75rem, 7vw, 5.5rem); font-weight: 900; line-height: 1.02; letter-spacing: -0.03em; }
+      h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+      h3 { font-size: 1.1875rem; font-weight: 700; }
+      .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; display: block; }
+      .lead { font-size: clamp(1rem, 2.2vw, 1.25rem); color: rgba(255,255,255,0.65); max-width: 520px; margin-top: 1.25rem; line-height: 1.65; }
+      .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+      .section-lead { font-size: 1.0625rem; color: rgba(255,255,255,0.55); max-width: 540px; margin: 0.75rem 0 3rem; line-height: 1.7; }
+      .highlight { color: var(--accent); }
+
+      /* ===== BUTTONS ===== */
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+        padding: 0.875rem 1.875rem; border-radius: 99px;
+        font-weight: 700; font-size: 0.9375rem; border: none;
+        transition: all var(--t); white-space: nowrap; cursor: pointer;
+      }
+      .btn-accent { background: var(--accent); color: #0a0a0a; }
+      .btn-accent:hover { background: #bfff5e; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(168,255,62,0.25); }
+      .btn-ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.2); }
+      .btn-ghost:hover { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.05); }
+      .btn-lg { padding: 1rem 2.25rem; font-size: 1rem; }
+
+      /* ===== HEADER ===== */
+      .site-header {
+        position: sticky; top: 0; z-index: 100;
+        background: rgba(10,10,10,0.9); backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border); height: var(--header-h);
+      }
+      .header-wrap { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
+      .logo { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; }
+      .logo .dot { color: var(--accent); }
+      .main-nav { display: flex; align-items: center; gap: 2rem; }
+      .main-nav a { font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); transition: color var(--t); }
+      .main-nav a:hover { color: #fff; }
+      .nav-cta { background: var(--accent) !important; color: #0a0a0a !important; padding: 0.5rem 1.25rem; border-radius: 99px; font-weight: 700; }
+      .nav-cta:hover { background: #bfff5e !important; }
+      .menu-toggle { display: none; background: none; border: none; color: #fff; flex-direction: column; gap: 5px; padding: 4px; }
+      .menu-toggle span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; transition: all 0.2s; }
+      @media (max-width: 767px) {
+        .menu-toggle { display: flex; }
+        .main-nav {
+          position: fixed; inset: var(--header-h) 0 0 0;
+          background: #0a0a0a; flex-direction: column; align-items: flex-start;
+          gap: 0; padding: 1.5rem 1.25rem;
+          transform: translateX(100%); transition: transform 0.3s ease; overflow-y: auto;
+        }
+        .main-nav.is-open { transform: translateX(0); }
+        .main-nav a { font-size: 1.25rem; padding: 0.875rem 0; width: 100%; border-bottom: 1px solid var(--border); color: rgba(255,255,255,0.75); }
+        .nav-cta { margin-top: 1.25rem; width: 100%; text-align: center; border-bottom: none !important; }
+      }
+
+      /* ===== HERO ===== */
+      .hero { min-height: calc(100vh - var(--header-h)); display: grid; align-items: center; position: relative; overflow: hidden; }
+      .hero-bg { position: absolute; inset: 0; z-index: 0; }
+      .hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: brightness(0.28); }
+      .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, rgba(10,10,10,0.95) 35%, rgba(10,10,10,0.3)); }
+      .hero-content { position: relative; z-index: 1; padding: 5rem 0; max-width: 680px; }
+      .hero h1 { margin-bottom: 0; }
+      .hero-actions { display: flex; gap: 1rem; margin-top: 2.25rem; flex-wrap: wrap; }
+      .hero-stats { display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.1); }
+      .stat-item strong { display: block; font-size: 2.25rem; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: -0.02em; }
+      .stat-item span { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 0.25rem; display: block; letter-spacing: 0.03em; }
+
+      /* ===== CARDS ===== */
+      .card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+      .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+
+      /* ===== SERVICES ===== */
+      .service-icon { font-size: 1.75rem; margin-bottom: 1.25rem; }
+      .service-card h3 { margin-bottom: 0.625rem; }
+      .service-card > p { font-size: 0.9375rem; color: rgba(255,255,255,0.55); line-height: 1.65; }
+      .service-card ul { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+      .service-card li { font-size: 0.875rem; color: rgba(255,255,255,0.45); padding-left: 1.125rem; position: relative; }
+      .service-card li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 0.75rem; top: 2px; }
+
+      /* ===== STEPS ===== */
+      .step-card { position: relative; }
+      .step-num { font-size: 4rem; font-weight: 900; color: var(--accent); line-height: 1; margin-bottom: 0.75rem; opacity: 0.9; }
+      .step-card h3 { margin-bottom: 0.5rem; }
+      .step-card p { font-size: 0.9375rem; color: rgba(255,255,255,0.5); }
+
+      /* ===== TEAM ===== */
+      .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+      .team-card { text-align: center; }
+      .team-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.25rem; border: 2px solid var(--accent); }
+      .team-role { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.375rem; }
+      .team-card h3 { margin-bottom: 0.375rem; font-size: 1.125rem; }
+      .team-card > p { font-size: 0.875rem; color: rgba(255,255,255,0.45); margin-top: 0.5rem; }
+      .team-cert { display: inline-block; margin-top: 0.875rem; font-size: 0.75rem; color: rgba(255,255,255,0.35); background: var(--bg-3); border-radius: 99px; padding: 0.25rem 0.75rem; border: 1px solid var(--border); }
+
+      /* ===== PLANS ===== */
+      .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; align-items: start; margin-top: 1rem; }
+      .plan-card { display: flex; flex-direction: column; }
+      .plan-card.featured { border-color: var(--accent); background: #0c1500; }
+      .plan-badge { display: inline-block; background: var(--accent); color: #000; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.75rem; border-radius: 99px; margin-bottom: 1.25rem; width: fit-content; }
+      .plan-name { font-size: 1.375rem; font-weight: 800; margin-bottom: 0.375rem; }
+      .plan-price { font-size: 2.5rem; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 0.25rem; letter-spacing: -0.02em; }
+      .plan-price span { font-size: 0.9rem; color: rgba(255,255,255,0.4); font-weight: 400; }
+      .plan-desc { font-size: 0.875rem; color: rgba(255,255,255,0.4); margin-bottom: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; }
+      .plan-features { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; flex: 1; }
+      .plan-feature { display: flex; align-items: flex-start; gap: 0.625rem; font-size: 0.9375rem; color: rgba(255,255,255,0.75); }
+      .plan-feature::before { content: '✓'; color: var(--accent); font-weight: 800; flex-shrink: 0; }
+      .plan-btn { width: 100%; margin-top: auto; }
+      .plan-micro { font-size: 0.75rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 0.875rem; }
+
+      /* ===== TESTIMONIALS ===== */
+      .stars { color: var(--accent); font-size: 0.875rem; letter-spacing: 2px; margin-bottom: 1rem; }
+      .quote { font-size: 1rem; color: rgba(255,255,255,0.8); font-style: italic; line-height: 1.7; margin-bottom: 1.5rem; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; }
+      .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8125rem; color: var(--accent); flex-shrink: 0; border: 1px solid rgba(168,255,62,0.2); }
+      .author-name { font-weight: 700; font-size: 0.9rem; color: #fff; }
+      .author-detail { font-size: 0.8rem; color: rgba(255,255,255,0.4); }
+
+      /* ===== SCHEDULE ===== */
+      .schedule-box { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+      .schedule-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+      .schedule-row:last-child { border-bottom: none; }
+      .schedule-row span:first-child { color: rgba(255,255,255,0.65); font-size: 0.9375rem; }
+      .schedule-row span:last-child { color: var(--accent); font-weight: 700; font-size: 0.9375rem; }
+
+      /* ===== FAQ ===== */
+      .faq-list { display: flex; flex-direction: column; gap: 0.625rem; }
+      .faq-item { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+      .faq-trigger { width: 100%; text-align: left; padding: 1.25rem 1.5rem; background: none; border: none; color: #fff; font-size: 0.9375rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+      .faq-trigger::after { content: '+'; font-size: 1.25rem; color: var(--accent); flex-shrink: 0; transition: transform 0.2s; font-weight: 400; }
+      .faq-trigger[aria-expanded="true"]::after { transform: rotate(45deg); }
+      .faq-panel { padding: 0 1.5rem 1.25rem; }
+      .faq-panel p { font-size: 0.9375rem; color: rgba(255,255,255,0.6); line-height: 1.7; }
+
+      /* ===== CTA FINAL ===== */
+      .cta-wrap { text-align: center; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 5rem 2rem; }
+      .cta-wrap h2 { margin-bottom: 1rem; }
+      .cta-wrap p { color: rgba(255,255,255,0.55); margin-bottom: 2.25rem; font-size: 1.0625rem; }
+      .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+      /* ===== FOOTER ===== */
+      .site-footer { background: var(--bg); border-top: 1px solid var(--border); padding: 4rem 0 2rem; }
+      .footer-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; }
+      @media (min-width: 768px) { .footer-grid { grid-template-columns: 1.5fr 1fr 1fr; } }
+      .footer-brand { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 0.5rem; }
+      .footer-tagline { font-size: 0.875rem; color: rgba(255,255,255,0.4); margin-bottom: 1rem; }
+      .footer-col-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 1rem; }
+      .footer-links { display: flex; flex-direction: column; gap: 0.625rem; }
+      .footer-links a, .footer-links p { font-size: 0.9rem; color: rgba(255,255,255,0.55); transition: color 0.2s; }
+      .footer-links a:hover { color: #fff; }
+      .footer-bottom { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8125rem; color: rgba(255,255,255,0.3); }
+      .footer-bottom a { color: rgba(255,255,255,0.4); transition: color 0.2s; }
+      .footer-bottom a:hover { color: #fff; }
+      .footer-legal-links { display: flex; gap: 1.5rem; }
+
+      /* ===== MODAL ===== */
+      .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+      .modal[hidden] { display: none; }
+      .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); }
+      .modal-content { position: relative; z-index: 1; background: #121212; border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-lg); padding: 2.5rem; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+      .modal-content h2 { font-size: 1.375rem; margin-bottom: 1.5rem; }
+      #modal-plan-name { font-size: 1.125rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+      #modal-plan-price { font-size: 2rem; font-weight: 900; color: var(--accent); margin-bottom: 1rem; letter-spacing: -0.02em; }
+      #modal-plan-includes { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+      #modal-plan-includes li { font-size: 0.9rem; color: rgba(255,255,255,0.65); padding-left: 1.25rem; position: relative; }
+      #modal-plan-includes li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 800; }
+      .checkout-email-label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); }
+      #checkout-email { width: 100%; padding: 0.8125rem 1rem; border-radius: 8px; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 1rem; margin-bottom: 0.75rem; transition: border-color 0.2s, outline 0.2s; }
+      #checkout-email:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-color: transparent; }
+      .modal-plan-summary p { font-size: 0.8125rem; color: rgba(255,255,255,0.35); line-height: 1.6; margin-bottom: 0.25rem; }
+      .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+      .modal-actions .btn { flex: 1; }
+
+      /* ===== TOAST ===== */
+      .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: 600; font-size: 0.9rem; z-index: 300; white-space: nowrap; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+      .toast[hidden] { display: none; }
+
+      /* ===== TO TOP ===== */
+      .to-top { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 150; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #000; border: none; font-size: 1.125rem; font-weight: 800; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+      .to-top.visible { opacity: 1; pointer-events: auto; }
+
+      /* ===== DIVIDER ===== */
+      .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+      /* ===== SOCIAL ICON ===== */
+      .social-link svg { width: 20px; height: 20px; fill: currentColor; }
+    </style>
+
     <script src="main.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
+    <!-- HEADER -->
     <header class="site-header" id="inicio">
       <div class="container header-wrap">
-        <a href="#inicio" class="logo" aria-label="Ir al inicio">MODU</a>
+        <a href="#inicio" class="logo" aria-label="MODU — Inicio">
+          MODU<span class="dot">.</span>
+        </a>
 
         <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu">
           <span></span><span></span><span></span>
         </button>
 
         <nav id="menu" class="main-nav" aria-label="Navegación principal">
-          <a href="#planes" data-scroll-to>Planes</a>
           <a href="#servicios" data-scroll-to>Servicios</a>
-          <a href="#como-funciona" data-scroll-to>Cómo funciona</a>
-          <a href="#resultados" data-scroll-to>Resultados</a>
+          <a href="#equipo" data-scroll-to>Equipo</a>
+          <a href="#planes" data-scroll-to>Planes</a>
           <a href="#faq" data-scroll-to>FAQ</a>
           <a href="#ubicacion" data-scroll-to>Ubicación</a>
-          <a
-            class="social-link"
-            href="https://www.instagram.com/bunker.htc/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 1.8A3.95 3.95 0 003.8 7.75v8.5a3.95 3.95 0 003.95 3.95h8.5a3.95 3.95 0 003.95-3.95v-8.5a3.95 3.95 0 00-3.95-3.95h-8.5zM17.2 6.5a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.8a3.2 3.2 0 100 6.4 3.2 3.2 0 000-6.4z" />
-            </svg>
-          </a>
-          <a href="#planes" class="btn btn-accent nav-cta js-cta-inscribirme" data-scroll-to>
-            Inscribirme
-          </a>
+          <a href="#planes" class="btn nav-cta js-cta-inscribirme" data-scroll-to>Empezar ahora</a>
         </nav>
       </div>
     </header>
 
     <main id="contenido">
-      <section class="hero section">
-        <div class="container hero-grid">
-          <div>
-            <p class="eyebrow">Ñuñoa · Santiago de Chile</p>
-            <h1>Entrenamiento + Nutrición + Kinesiología</h1>
-            <p class="lead">Trabajo personalizado para sostener progreso real con acompañamiento profesional.</p>
 
-            <ul class="hero-bullets" aria-label="Beneficios principales">
-              <li>Plan personalizado</li>
-              <li>Nutricionista + Kinesiología</li>
-              <li>Compromiso mensual</li>
-            </ul>
-
+      <!-- HERO -->
+      <section class="hero" id="hero">
+        <div class="hero-bg">
+          <img
+            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80"
+            alt="Interior del gimnasio MODU"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <div class="container">
+          <div class="hero-content">
+            <span class="eyebrow">Santiago · Chile — Providencia</span>
+            <h1>
+              Sin excusas.<br>
+              <span class="highlight">Sin límites.</span>
+            </h1>
+            <p class="lead">
+              Entrenamiento personalizado, nutrición deportiva y kinesiología para personas que van en serio con su proceso.
+            </p>
             <div class="hero-actions">
-              <a href="#planes" class="btn btn-accent js-cta-inscribirme" data-scroll-to>Inscribirme</a>
+              <a href="#planes" class="btn btn-accent btn-lg js-cta-inscribirme" data-scroll-to>Empezar ahora</a>
               <a
                 href="https://wa.me/56958090338"
-                class="btn btn-ghost js-cta-whatsapp"
+                class="btn btn-ghost btn-lg js-cta-whatsapp"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Hablar por WhatsApp"
-              >
-                WhatsApp
-              </a>
+              >WhatsApp</a>
+            </div>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <strong>+200</strong>
+                <span>Alumnos activos</span>
+              </div>
+              <div class="stat-item">
+                <strong>3</strong>
+                <span>Especialidades</span>
+              </div>
+              <div class="stat-item">
+                <strong>16 hs</strong>
+                <span>Disponibles al día</span>
+              </div>
             </div>
           </div>
-
-          <figure class="hero-media">
-            <img
-              src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=80"
-              alt="Entrenamiento funcional en gimnasio"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
         </div>
       </section>
 
+      <!-- SERVICIOS -->
       <section class="section" id="servicios">
         <div class="container">
-          <h2>Servicios</h2>
-          <div class="cards-grid service-grid">
+          <p class="section-label">Lo que hacemos</p>
+          <h2>Tres especialidades.<br><span class="highlight">Un solo proceso.</span></h2>
+          <p class="section-lead">No vendemos clases sueltas. Construimos un plan completo alrededor de tu objetivo.</p>
+          <div class="grid-3">
             <article class="card service-card">
-              <h3>Entrenamiento personalizado</h3>
-              <p>Rutina enfocada en progreso medible.</p>
+              <div class="service-icon">🏋️</div>
+              <h3>Entrenamiento Personalizado</h3>
+              <p>Rutinas diseñadas según tu composición corporal, historial y objetivo. Ajustadas semana a semana.</p>
               <ul>
-                <li>Plan según objetivo</li>
-                <li>Seguimiento semanal</li>
+                <li>Plan según tu objetivo y nivel</li>
+                <li>Seguimiento semanal de cargas</li>
+                <li>Evaluación de composición corporal</li>
+                <li>Soporte técnico en cada sesión</li>
               </ul>
             </article>
             <article class="card service-card">
-              <h3>Nutricionista</h3>
-              <p>Estrategia alimentaria aplicable a tu día.</p>
+              <div class="service-icon">🥗</div>
+              <h3>Nutrición Deportiva</h3>
+              <p>Estrategia alimentaria real, aplicable a tu día. Sin dietas extremas ni restricciones insostenibles.</p>
               <ul>
-                <li>Evaluación nutricional</li>
-                <li>Ajustes por avance</li>
+                <li>Evaluación nutricional inicial</li>
+                <li>Plan alimentario personalizado</li>
+                <li>Ajustes por avance y adherencia</li>
+                <li>Educación alimentaria práctica</li>
               </ul>
             </article>
             <article class="card service-card">
-              <h3>Kinesiología</h3>
-              <p>Movilidad y prevención para entrenar mejor.</p>
+              <div class="service-icon">⚡</div>
+              <h3>Kinesiología y Recuperación</h3>
+              <p>Movilidad, prevención y recuperación funcional para que nunca tengas que parar por lesión.</p>
               <ul>
-                <li>Recuperación funcional</li>
-                <li>Prevención de molestias</li>
+                <li>Evaluación postural y funcional</li>
+                <li>Trabajo de movilidad activa</li>
+                <li>Rehabilitación de lesiones</li>
+                <li>Prevención y mantenimiento</li>
               </ul>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="como-funciona">
+      <!-- CÓMO FUNCIONA -->
+      <section class="section section-dark" id="como-funciona">
         <div class="container">
-          <h2>Cómo funciona</h2>
-          <div class="cards-grid steps-grid">
+          <p class="section-label">Proceso</p>
+          <h2>Tres pasos para<br><span class="highlight">empezar hoy.</span></h2>
+          <p class="section-lead">Sin burocracia. Sin semanas de espera. Si hay cupo disponible, empezás esta semana.</p>
+          <div class="grid-3">
             <article class="card step-card">
-              <h3>1. Elegís plan</h3>
-              <p>Seleccionás Starter, Pro o Elite según tu objetivo.</p>
+              <div class="step-num">01</div>
+              <h3>Elegís tu plan</h3>
+              <p>Starter, Pro o Elite según tu objetivo y presupuesto. Cada plan incluye evaluación inicial.</p>
             </article>
             <article class="card step-card">
-              <h3>2. Activás suscripción</h3>
-              <p>Pagás seguro con Stripe y queda el cobro mensual automático.</p>
+              <div class="step-num">02</div>
+              <h3>Agendás tu primera sesión</h3>
+              <p>Te contactamos por WhatsApp para coordinar horario de evaluación y primera sesión práctica.</p>
             </article>
             <article class="card step-card">
-              <h3>3. Empezás tu proceso</h3>
-              <p>Coordinamos evaluación inicial y primer turno por WhatsApp.</p>
+              <div class="step-num">03</div>
+              <h3>Empezás a transformarte</h3>
+              <p>Con tu plan activo, seguimiento semanal y equipo disponible para resolver cualquier duda.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section section-strong" id="planes">
+      <!-- EQUIPO -->
+      <section class="section" id="equipo">
         <div class="container">
-          <h2>Planes mensuales</h2>
-          <p class="section-lead">Cupos limitados para seguimiento personalizado.</p>
+          <p class="section-label">El equipo</p>
+          <h2>Profesionales reales.<br><span class="highlight">Resultados reales.</span></h2>
+          <p class="section-lead">No hay algoritmos ni coaches genéricos. Cada alumno tiene un profesional asignado.</p>
+          <div class="team-grid">
+            <article class="card team-card">
+              <img
+                class="team-photo"
+                src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=300&q=80"
+                alt="Sebastián Fuentes, entrenador"
+                loading="lazy"
+                decoding="async"
+              />
+              <p class="team-role">Entrenamiento</p>
+              <h3>Sebastián Fuentes</h3>
+              <p>Especialista en fuerza y composición corporal. 8 años de experiencia con alumnos de todos los niveles.</p>
+              <span class="team-cert">NSCA-CSCS · Kinesiólogo U. Mayor</span>
+            </article>
+            <article class="card team-card">
+              <img
+                class="team-photo"
+                src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80"
+                alt="Valentina Rojas, nutricionista"
+                loading="lazy"
+                decoding="async"
+              />
+              <p class="team-role">Nutrición Deportiva</p>
+              <h3>Valentina Rojas</h3>
+              <p>Nutricionista deportiva enfocada en adherencia real. Planes que se adaptan a tu vida, no al revés.</p>
+              <span class="team-cert">Nutricionista · U. de Chile</span>
+            </article>
+            <article class="card team-card">
+              <img
+                class="team-photo"
+                src="https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=300&q=80"
+                alt="Ignacio Mardones, kinesiólogo"
+                loading="lazy"
+                decoding="async"
+              />
+              <p class="team-role">Kinesiología</p>
+              <h3>Ignacio Mardones</h3>
+              <p>Kinesiólogo deportivo con foco en prevención. Te mantiene entrenando sin interrupciones por lesión.</p>
+              <span class="team-cert">Kinesiólogo · PUC · Magíster en Deporte</span>
+            </article>
+          </div>
+        </div>
+      </section>
 
-          <div class="cards-grid plans-grid">
+      <!-- PLANES -->
+      <section class="section section-dark" id="planes">
+        <div class="container">
+          <p class="section-label">Inversión</p>
+          <h2>Elegí tu plan.<br><span class="highlight">Cupos limitados.</span></h2>
+          <p class="section-lead">Trabajo personalizado real requiere cupos limitados. Cuando se completan, cerramos inscripciones.</p>
+          <div class="plans-grid">
+
             <article class="card plan-card">
               <p class="plan-name">Starter</p>
-              <p class="price">$39.990 <span>CLP / mes</span></p>
-              <div class="feature-badges" aria-label="Incluye Starter">
-                <span class="badge badge-inline">Entrenamiento</span>
+              <p class="plan-price">$29.990 <span>CLP / mes</span></p>
+              <p class="plan-desc">Para quienes empiezan o retoman. Foco en hábitos y técnica base.</p>
+              <div class="plan-features">
+                <div class="plan-feature">2 sesiones de entrenamiento semanales</div>
+                <div class="plan-feature">Evaluación inicial de composición corporal</div>
+                <div class="plan-feature">Plan de entrenamiento personalizado</div>
+                <div class="plan-feature">Soporte por WhatsApp</div>
               </div>
-              <ul>
-                <li>2 sesiones semanales</li>
-                <li>Evaluación inicial</li>
-                <li>Soporte por WhatsApp</li>
-              </ul>
-              <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="starter">Inscribirme</button>
+              <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="starter">Inscribirme en Starter</button>
+              <p class="plan-micro">Cobro mensual automático · Cancelación con 5 días de aviso</p>
             </article>
 
             <article class="card plan-card featured">
-              <p class="badge">Más elegido</p>
+              <span class="plan-badge">Más elegido</span>
               <p class="plan-name">Pro</p>
-              <p class="price">$59.990 <span>CLP / mes</span></p>
-              <div class="feature-badges" aria-label="Incluye Pro">
-                <span class="badge badge-inline">Entrenamiento</span>
-                <span class="badge badge-inline">Nutrición</span>
+              <p class="plan-price">$49.990 <span>CLP / mes</span></p>
+              <p class="plan-desc">Entrenamiento y nutrición integrados. Para quienes quieren resultados reales.</p>
+              <div class="plan-features">
+                <div class="plan-feature">3 sesiones de entrenamiento semanales</div>
+                <div class="plan-feature">Plan nutricional personalizado con nutricionista</div>
+                <div class="plan-feature">Seguimiento semanal de métricas y avance</div>
+                <div class="plan-feature">Ajuste mensual de plan según evolución</div>
+                <div class="plan-feature">Soporte prioritario por WhatsApp</div>
               </div>
-              <ul>
-                <li>3 sesiones semanales</li>
-                <li>Plan personalizado</li>
-                <li>Seguimiento semanal</li>
-              </ul>
-              <button class="btn btn-accent plan-btn js-cta-inscribirme" data-plan="pro">Inscribirme</button>
+              <button class="btn btn-accent plan-btn js-cta-inscribirme" data-plan="pro">Inscribirme en Pro</button>
+              <p class="plan-micro">Cobro mensual automático · Cancelación con 5 días de aviso</p>
             </article>
 
             <article class="card plan-card">
               <p class="plan-name">Elite</p>
-              <p class="price">$79.990 <span>CLP / mes</span></p>
-              <div class="feature-badges" aria-label="Incluye Elite">
-                <span class="badge badge-inline">Entrenamiento</span>
-                <span class="badge badge-inline">Nutrición</span>
-                <span class="badge badge-inline">Kinesiología</span>
+              <p class="plan-price">$79.990 <span>CLP / mes</span></p>
+              <p class="plan-desc">El proceso completo. Para quienes no quieren dejar nada al azar.</p>
+              <div class="plan-features">
+                <div class="plan-feature">4 sesiones de entrenamiento semanales</div>
+                <div class="plan-feature">Nutrición deportiva con seguimiento semanal</div>
+                <div class="plan-feature">Kinesiología y evaluación funcional mensual</div>
+                <div class="plan-feature">Revisión integral de progreso</div>
+                <div class="plan-feature">Acceso directo a todo el equipo</div>
               </div>
-              <ul>
-                <li>4 sesiones semanales</li>
-                <li>Seguimiento integral</li>
-                <li>Revisión de progreso</li>
-              </ul>
-              <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="elite">Inscribirme</button>
+              <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="elite">Inscribirme en Elite</button>
+              <p class="plan-micro">Cobro mensual automático · Cancelación con 5 días de aviso</p>
             </article>
-          </div>
 
-          <p class="microcopy">Compromiso mensual con cancelación anticipada.</p>
+          </div>
         </div>
       </section>
 
+      <!-- TESTIMONIOS -->
       <section class="section" id="resultados">
         <div class="container">
-          <h2>Resultados reales</h2>
-          <p class="section-lead">Más constancia, menos dolor y progreso sostenible en el tiempo.</p>
-          <p class="results-method">Método con seguimiento semanal, evaluación de cargas y adherencia mensual.</p>
-
-          <div class="cards-grid testimonials-grid">
-            <article class="card testimonial-card">
-              <div class="testimonial-head" aria-hidden="true">
-                <span class="avatar-pill">CR</span>
-                <span class="rating-stars">★★★★★</span>
+          <p class="section-label">Resultados</p>
+          <h2>Números reales.<br><span class="highlight">Personas reales.</span></h2>
+          <p class="section-lead">No son fotos de stock. Son alumnos que hicieron el proceso completo.</p>
+          <div class="grid-3">
+            <article class="card">
+              <div class="stars">★★★★★</div>
+              <p class="quote">"Bajé 8kg en 3 meses sin pasar hambre. Fue la primera vez que entendí cómo comer para mi cuerpo. El seguimiento semanal hace toda la diferencia."</p>
+              <div class="author-row">
+                <div class="avatar">MJ</div>
+                <div>
+                  <p class="author-name">María José Contreras</p>
+                  <p class="author-detail">34 años · Plan Pro · Objetivo: pérdida de grasa</p>
+                </div>
               </div>
-              <p class="quote">“Volví a entrenar sin molestias y sostuve rutina 3 meses seguidos.”</p>
-              <p><strong>Camila R.</strong> · Objetivo: Fuerza</p>
             </article>
-            <article class="card testimonial-card">
-              <div class="testimonial-head" aria-hidden="true">
-                <span class="avatar-pill">TV</span>
-                <span class="rating-stars">★★★★★</span>
+            <article class="card">
+              <div class="stars">★★★★★</div>
+              <p class="quote">"Volví a entrenar después de una lesión de rodilla que me tuvo 6 meses parado. Hoy levanto más que antes de lesionarme. El kinesiólogo es otro nivel."</p>
+              <div class="author-row">
+                <div class="avatar">FA</div>
+                <div>
+                  <p class="author-name">Felipe Araya</p>
+                  <p class="author-detail">28 años · Plan Elite · Objetivo: fuerza y recuperación</p>
+                </div>
               </div>
-              <p class="quote">“Con nutrición y entrenamiento, mejoré energía y adherencia semanal.”</p>
-              <p><strong>Tomás V.</strong> · Objetivo: Recomposición</p>
             </article>
-            <article class="card testimonial-card">
-              <div class="testimonial-head" aria-hidden="true">
-                <span class="avatar-pill">DM</span>
-                <span class="rating-stars">★★★★★</span>
+            <article class="card">
+              <div class="stars">★★★★★</div>
+              <p class="quote">"Subí 6kg de músculo en 4 meses. Nunca había tenido tanta constancia en un gimnasio. El plan personalizado y el seguimiento te obligan a aparecer."</p>
+              <div class="author-row">
+                <div class="avatar">CM</div>
+                <div>
+                  <p class="author-name">Carla Müller</p>
+                  <p class="author-detail">31 años · Plan Pro · Objetivo: ganancia muscular</p>
+                </div>
               </div>
-              <p class="quote">“La parte kinésica me ayudó a prevenir recaídas y entrenar constante.”</p>
-              <p><strong>Daniela M.</strong> · Objetivo: Hábitos</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="entrenador">
+      <!-- FAQ -->
+      <section class="section section-dark" id="faq">
         <div class="container">
-          <h2>Quién te entrena</h2>
-          <article class="card coach-card">
-            <img
-              src="https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=600&q=80"
-              alt="Entrenador de Modu"
-              loading="lazy"
-              decoding="async"
-            />
-            <div>
-              <h3>Equipo MODU</h3>
-              <p>Entrenamiento de fuerza y composición corporal con enfoque personalizado.</p>
-              <ul>
-                <li>Preparación física y entrenamiento funcional</li>
-                <li>Trabajo conjunto con nutricionista y kinesiología</li>
-                <li>Seguimiento semanal con métricas de progreso</li>
-              </ul>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="section" id="faq">
-        <div class="container">
-          <h2>FAQ</h2>
-          <p class="faq-subtitle">Respuestas directas para que elijas tu plan sin fricción.</p>
+          <p class="section-label">Preguntas frecuentes</p>
+          <h2>Todo lo que necesitás<br><span class="highlight">saber antes de empezar.</span></h2>
+          <p class="section-lead">Sin letra chica. Si algo no está acá, escribinos por WhatsApp.</p>
           <div class="faq-list">
+
             <article class="faq-item">
               <h3>
                 <button class="faq-trigger" aria-expanded="false" aria-controls="faq-1" id="faq-trigger-1">
-                  ¿Qué incluye cada plan?
+                  ¿Cuándo puedo empezar si me inscribo hoy?
                 </button>
               </h3>
               <div class="faq-panel" id="faq-1" role="region" aria-labelledby="faq-trigger-1" hidden>
-                <ul>
-                  <li>Todos los planes incluyen entrenamiento personalizado.</li>
-                  <li>Los planes superiores suman nutrición y kinesiología.</li>
-                  <li>Se ajusta según tu objetivo y evolución semanal.</li>
-                </ul>
+                <p>Si hay cupo disponible, coordinamos tu evaluación inicial para esta semana. Una vez hecha la evaluación, arrancás la semana siguiente con tu plan activo. El proceso completo desde la inscripción hasta la primera sesión real toma entre 3 y 5 días hábiles.</p>
               </div>
             </article>
 
             <article class="faq-item">
               <h3>
                 <button class="faq-trigger" aria-expanded="false" aria-controls="faq-2" id="faq-trigger-2">
-                  ¿Cómo es la inscripción?
+                  ¿Cuáles son los horarios?
                 </button>
               </h3>
               <div class="faq-panel" id="faq-2" role="region" aria-labelledby="faq-trigger-2" hidden>
-                <ul>
-                  <li>Elegís tu plan mensual según objetivo.</li>
-                  <li>Revisás el detalle y confirmás tu inscripción.</li>
-                  <li>Con eso reservás tu cupo de trabajo personalizado.</li>
-                </ul>
+                <p>Lunes a viernes de 6:00 a 22:00 y sábados de 8:00 a 14:00. Las sesiones se agendan por adelantado para garantizar disponibilidad del equipo. Los domingos el centro está cerrado.</p>
               </div>
             </article>
 
             <article class="faq-item">
               <h3>
                 <button class="faq-trigger" aria-expanded="false" aria-controls="faq-3" id="faq-trigger-3">
-                  ¿Puedo pausar o cancelar?
+                  ¿Puedo cancelar cuando quiera?
                 </button>
               </h3>
               <div class="faq-panel" id="faq-3" role="region" aria-labelledby="faq-trigger-3" hidden>
-                <ul>
-                  <li>Sí, podés pausar o cancelar con aviso previo.</li>
-                  <li>La anticipación permite reorganizar correctamente tu cupo.</li>
-                  <li>Si tenés lesión o ajuste horario, adaptamos el plan de trabajo.</li>
-                </ul>
+                <p>Sí. Podés cancelar tu suscripción en cualquier momento con al menos 5 días de anticipación antes del próximo cobro. El cobro es mensual automático vía Stripe. No hay multas ni permanencias mínimas.</p>
               </div>
             </article>
-          </div>
 
+            <article class="faq-item">
+              <h3>
+                <button class="faq-trigger" aria-expanded="false" aria-controls="faq-4" id="faq-trigger-4">
+                  ¿Qué pasa si me lesiono durante el proceso?
+                </button>
+              </h3>
+              <div class="faq-panel" id="faq-4" role="region" aria-labelledby="faq-trigger-4" hidden>
+                <p>El equipo de kinesiología evalúa la situación y adapta tu plan para que puedas seguir entrenando sin agravar la lesión. En los planes Elite, la kinesiología ya está incluida. En Starter y Pro, gestionamos la derivación interna. Nunca te dejamos parado sin opciones.</p>
+              </div>
+            </article>
+
+            <article class="faq-item">
+              <h3>
+                <button class="faq-trigger" aria-expanded="false" aria-controls="faq-5" id="faq-trigger-5">
+                  ¿Necesito experiencia previa para inscribirme?
+                </button>
+              </h3>
+              <div class="faq-panel" id="faq-5" role="region" aria-labelledby="faq-trigger-5" hidden>
+                <p>No. Todos los planes incluyen una evaluación inicial que determina tu nivel real. Si nunca entrenaste, empezamos desde cero con foco en técnica y hábito. Si ya tenés experiencia, partimos desde donde estás y escalamos más rápido.</p>
+              </div>
+            </article>
+
+            <article class="faq-item">
+              <h3>
+                <button class="faq-trigger" aria-expanded="false" aria-controls="faq-6" id="faq-trigger-6">
+                  ¿Cómo funciona el cobro?
+                </button>
+              </h3>
+              <div class="faq-panel" id="faq-6" role="region" aria-labelledby="faq-trigger-6" hidden>
+                <p>El cobro es mensual y automático a través de Stripe, la plataforma de pagos más segura del mercado. Podés pagar con tarjeta de débito o crédito. Recibís un recibo por email cada mes y podés gestionar o cancelar tu suscripción desde el portal de cliente.</p>
+              </div>
+            </article>
+
+          </div>
         </div>
       </section>
 
-      <section class="section section-final-cta" id="cta-final">
-        <div class="container final-cta-card">
-          <h2>¿Tenés dudas antes de elegir un plan?</h2>
-          <p>Escribinos por WhatsApp y te orientamos según tu objetivo.</p>
-          <div class="hero-actions">
-            <a
-              href="https://wa.me/56958090338"
-              class="btn btn-accent js-cta-whatsapp"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Hablar por WhatsApp
-            </a>
-            <a href="#planes" class="btn btn-ghost js-cta-inscribirme" data-scroll-to>Ver planes</a>
+      <!-- UBICACION + HORARIOS -->
+      <section class="section" id="ubicacion">
+        <div class="container">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem;align-items:start;">
+            <div>
+              <p class="section-label">Ubicación</p>
+              <h2 style="margin-bottom:1.25rem;">Estamos en<br><span class="highlight">Providencia.</span></h2>
+              <p style="color:rgba(255,255,255,0.55);font-size:0.9375rem;margin-bottom:2rem;line-height:1.7;">
+                Av. Providencia 1234, Providencia, Santiago.<br>
+                A 5 minutos del metro Pedro de Valdivia.
+              </p>
+              <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <a
+                  id="maps-primary-link"
+                  class="btn btn-ghost js-cta-maps"
+                  href="https://www.google.com/maps/search/?api=1&query=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="width:fit-content;"
+                >📍 Cómo llegar</a>
+                <a
+                  href="https://wa.me/56958090338"
+                  class="btn btn-ghost js-cta-whatsapp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="width:fit-content;"
+                >💬 Escribinos</a>
+              </div>
+            </div>
+            <div>
+              <p class="section-label" style="margin-bottom:1rem;">Horarios</p>
+              <div class="schedule-box">
+                <div class="schedule-row">
+                  <span>Lunes a Viernes</span>
+                  <span>6:00 — 22:00</span>
+                </div>
+                <div class="schedule-row">
+                  <span>Sábado</span>
+                  <span>8:00 — 14:00</span>
+                </div>
+                <div class="schedule-row">
+                  <span>Domingo</span>
+                  <span style="color:rgba(255,255,255,0.3)!important;">Cerrado</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
+      <!-- CTA FINAL -->
+      <section class="section section-dark" id="cta-final">
+        <div class="container">
+          <div class="cta-wrap">
+            <span class="eyebrow">Últimos cupos disponibles</span>
+            <h2>¿Listo para empezar<br><span class="highlight">tu proceso?</span></h2>
+            <p>Cada mes cerramos inscripciones cuando se completan los cupos.<br>Si estás viendo esto, todavía hay lugar.</p>
+            <div class="cta-actions">
+              <a href="#planes" class="btn btn-accent btn-lg js-cta-inscribirme" data-scroll-to>Ver planes y precios</a>
+              <a
+                href="https://wa.me/56958090338"
+                class="btn btn-ghost btn-lg js-cta-whatsapp"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Hablar por WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
+    <!-- FOOTER -->
     <footer class="site-footer">
-      <div class="container footer-wrap">
-        <div class="footer-main">
-          <p class="footer-brand">MODU</p>
-          <p class="footer-tagline">Centro de entrenamiento integral</p>
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <p class="footer-brand">MODU.</p>
+            <p class="footer-tagline">Centro de alto rendimiento · Santiago, Chile</p>
+            <div class="footer-links" style="margin-top:1.25rem;">
+              <p>Av. Providencia 1234, Providencia</p>
+              <p>Santiago, Región Metropolitana</p>
+            </div>
+          </div>
+          <div>
+            <p class="footer-col-title">Contacto</p>
+            <div class="footer-links">
+              <a href="https://wa.me/56958090338" target="_blank" rel="noopener noreferrer" class="js-cta-whatsapp">+56 9 5809 0338</a>
+              <a href="https://www.instagram.com/bunker.htc/" target="_blank" rel="noopener noreferrer">@bunker.htc</a>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="js-cta-maps"
+              >Ver en Google Maps</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-col-title">Horarios</p>
+            <div class="footer-links">
+              <p>Lunes a Viernes: 6:00 — 22:00</p>
+              <p>Sábado: 8:00 — 14:00</p>
+              <p style="color:rgba(255,255,255,0.3);">Domingo: Cerrado</p>
+            </div>
+          </div>
         </div>
-
-        <div class="footer-contact" id="ubicacion">
-          <a
-            href="https://wa.me/56958090338"
-            class="footer-link footer-whatsapp js-cta-whatsapp"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp +56 9 5809 0338"
-          >
-            <span class="footer-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.52 3.48A11.86 11.86 0 0012.06 0C5.5 0 .18 5.32.18 11.88c0 2.1.55 4.15 1.6 5.96L0 24l6.33-1.66a11.85 11.85 0 005.73 1.46h.01c6.56 0 11.88-5.32 11.88-11.88 0-3.17-1.24-6.15-3.43-8.44zM12.07 21.8a9.9 9.9 0 01-5.05-1.39l-.36-.21-3.76.99 1.01-3.67-.23-.38a9.9 9.9 0 01-1.52-5.26c0-5.47 4.45-9.92 9.92-9.92 2.65 0 5.14 1.03 7.01 2.91a9.86 9.86 0 012.9 7.01c0 5.47-4.45 9.92-9.92 9.92zm5.44-7.41c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.64.07-.3-.15-1.24-.46-2.36-1.47-.87-.77-1.46-1.72-1.63-2.02-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47s1.06 2.87 1.21 3.07c.15.2 2.08 3.17 5.03 4.45.7.3 1.25.48 1.68.61.7.22 1.33.19 1.83.11.56-.08 1.77-.72 2.02-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35z" />
-              </svg>
-            </span>
-            <span>+56 9 5809 0338</span>
-          </a>
-          <a
-            class="footer-link footer-instagram social-link"
-            href="https://www.instagram.com/bunker.htc/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram bunker.htc"
-          >
-            <span class="footer-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 1.8A3.95 3.95 0 003.8 7.75v8.5a3.95 3.95 0 003.95 3.95h8.5a3.95 3.95 0 003.95-3.95v-8.5a3.95 3.95 0 00-3.95-3.95h-8.5zM17.2 6.5a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.8a3.2 3.2 0 100 6.4 3.2 3.2 0 000-6.4z" />
-              </svg>
-            </span>
-            <span>Instagram</span>
-          </a>
-          <p class="footer-address">Matta Oriente 408, Ñuñoa</p>
-
-          <a
-            id="maps-primary-link"
-            class="btn btn-ghost btn-map footer-route js-cta-maps"
-            href="https://www.google.com/maps/search/?api=1&query=Matta+Oriente+408,+%C3%91u%C3%B1oa,+Santiago+de+Chile"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Cómo llegar
-          </a>
-        </div>
-
-        <div class="footer-legal">
-          <p class="footer-signature">© 2026 Modu</p>
-          <p class="footer-legal-links">
-            <a href="terminos.html" aria-label="Leer términos">Términos</a> ·
-            <a href="privacidad.html" aria-label="Leer privacidad">Privacidad</a> ·
-            <a href="portal.html" aria-label="Gestionar suscripción">Gestionar plan</a>
-          </p>
+        <div class="footer-bottom">
+          <span>© 2026 MODU. Todos los derechos reservados.</span>
+          <div class="footer-legal-links">
+            <a href="terminos.html">Términos</a>
+            <a href="privacidad.html">Privacidad</a>
+            <a href="portal.html">Gestionar plan</a>
+          </div>
         </div>
       </div>
     </footer>
 
+    <!-- MODAL CHECKOUT -->
     <div class="modal" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title" hidden>
       <div class="modal-backdrop" data-close-modal></div>
       <div class="modal-content" role="document">
         <h2 id="checkout-modal-title">Revisá tu plan antes de continuar</h2>
         <div class="modal-plan-summary" aria-live="polite">
-          <p class="modal-plan-name" id="modal-plan-name">Plan seleccionado</p>
-          <p class="modal-plan-price" id="modal-plan-price">$39.990 CLP / mes</p>
+          <p id="modal-plan-name">Plan seleccionado</p>
+          <p id="modal-plan-price"></p>
           <ul id="modal-plan-includes"></ul>
-          <label class="checkout-email-label" for="checkout-email">Email para activar tu suscripción</label>
+          <label class="checkout-email-label" for="checkout-email">Tu email para activar la suscripción</label>
           <input
             id="checkout-email"
             type="email"
@@ -470,8 +778,8 @@
             autocomplete="email"
             required
           />
-          <p>Compromiso mensual.</p>
-          <p>La inscripción confirma tu cupo mensual. La cancelación debe solicitarse con anticipación.</p>
+          <p>Compromiso mensual. Cancelación con 5 días de aviso.</p>
+          <p>Serás redirigido a Stripe para el pago seguro.</p>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" id="modal-cancel" type="button">Cancelar</button>
@@ -481,7 +789,7 @@
     </div>
 
     <button class="to-top" id="to-top" aria-label="Volver arriba" type="button">↑</button>
-
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>Recibido</div>
+
   </body>
 </html>
