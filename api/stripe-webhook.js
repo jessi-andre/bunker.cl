@@ -96,6 +96,12 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { received: true });
     }
 
+    // Mark event as processed BEFORE handling (idempotency)
+    await supabase.from("stripe_events").insert({
+      event_id: event.id,
+      event_type: event.type,
+    });
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const customerId = normalizeId(session.customer);
@@ -176,12 +182,6 @@ module.exports = async function handler(req, res) {
 
       return json(res, 200, { received: true });
     }
-
-    // Mark event as processed
-    await supabase.from("stripe_events").insert({
-      event_id: event.id,
-      event_type: event.type,
-    }).then(() => {});
 
     return json(res, 200, { received: true });
   } catch (err) {
