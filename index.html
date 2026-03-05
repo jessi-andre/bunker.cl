@@ -16,7 +16,8 @@
     <meta name="twitter:title" content="MODU | Entrenamiento + Nutrición + Kinesiología" />
     <meta name="twitter:description" content="Centro premium en Santiago. Resultados reales con seguimiento personalizado." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80" />
-    <link rel="icon" href="favicon.ico" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
 
     <script type="application/ld+json">
       {
@@ -24,7 +25,7 @@
         "@type": "SportsActivityLocation",
         "name": "MODU",
         "url": "https://moduapp.vercel.app",
-        "telephone": "+56 9 5809 0338",
+        "telephone": "+56 9 1234 5678",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "Av. Providencia 1234",
@@ -41,7 +42,7 @@
           { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "06:00", "closes": "22:00" },
           { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "14:00" }
         ],
-        "sameAs": ["https://www.instagram.com/bunker.htc/"]
+        "sameAs": ["https://www.instagram.com/modu.santiago/"]
       }
     </script>
 
@@ -267,6 +268,28 @@
 
       /* ===== SOCIAL ICON ===== */
       .social-link svg { width: 20px; height: 20px; fill: currentColor; }
+
+      /* ===== ANIMATIONS ===== */
+      .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.65s cubic-bezier(0.16,1,0.3,1); }
+      .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+      .card { transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease, border-color 0.25s ease; }
+      .card:hover { transform: scale(1.02); box-shadow: 0 16px 48px rgba(0,0,0,0.55); border-color: rgba(255,255,255,0.15); }
+      .plan-card.featured:hover { border-color: var(--accent); }
+      .faq-item { transition: border-color 0.2s ease; }
+      .faq-item:hover { border-color: rgba(255,255,255,0.15); }
+
+      @keyframes wordReveal {
+        from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+        to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+      }
+      .word-reveal { display: inline-block; opacity: 0; animation: wordReveal 0.65s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+      @keyframes pulseCta {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(168,255,62,0.45); }
+        50%       { box-shadow: 0 0 0 12px rgba(168,255,62,0); }
+      }
+      .btn-pulse { animation: pulseCta 3s ease-in-out 2.5s infinite; }
     </style>
 
     <script src="main.js" defer></script>
@@ -312,16 +335,18 @@
           <div class="hero-content">
             <span class="eyebrow">Santiago · Chile — Providencia</span>
             <h1>
-              Sin excusas.<br>
-              <span class="highlight">Sin límites.</span>
+              <span class="word-reveal" style="animation-delay:0.1s">Sin</span>
+              <span class="word-reveal" style="animation-delay:0.25s">excusas.</span><br>
+              <span class="highlight word-reveal" style="animation-delay:0.45s">Sin</span>
+              <span class="highlight word-reveal" style="animation-delay:0.6s">límites.</span>
             </h1>
             <p class="lead">
               Entrenamiento personalizado, nutrición deportiva y kinesiología para personas que van en serio con su proceso.
             </p>
             <div class="hero-actions">
-              <a href="#planes" class="btn btn-accent btn-lg js-cta-inscribirme" data-scroll-to>Empezar ahora</a>
+              <a href="#planes" class="btn btn-accent btn-lg btn-pulse js-cta-inscribirme" data-scroll-to>Empezar ahora</a>
               <a
-                href="https://wa.me/56958090338"
+                href="https://wa.me/56912345678"
                 class="btn btn-ghost btn-lg js-cta-whatsapp"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -329,15 +354,15 @@
             </div>
             <div class="hero-stats">
               <div class="stat-item">
-                <strong>+200</strong>
+                <strong class="count-up" data-target="200" data-prefix="+" data-suffix="">+200</strong>
                 <span>Alumnos activos</span>
               </div>
               <div class="stat-item">
-                <strong>3</strong>
+                <strong class="count-up" data-target="3" data-prefix="" data-suffix="">3</strong>
                 <span>Especialidades</span>
               </div>
               <div class="stat-item">
-                <strong>16 hs</strong>
+                <strong class="count-up" data-target="16" data-prefix="" data-suffix=" hs">16 hs</strong>
                 <span>Disponibles al día</span>
               </div>
             </div>
@@ -665,7 +690,7 @@
                   style="width:fit-content;"
                 >📍 Cómo llegar</a>
                 <a
-                  href="https://wa.me/56958090338"
+                  href="https://wa.me/56912345678"
                   class="btn btn-ghost js-cta-whatsapp"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -704,7 +729,7 @@
             <div class="cta-actions">
               <a href="#planes" class="btn btn-accent btn-lg js-cta-inscribirme" data-scroll-to>Ver planes y precios</a>
               <a
-                href="https://wa.me/56958090338"
+                href="https://wa.me/56912345678"
                 class="btn btn-ghost btn-lg js-cta-whatsapp"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -731,8 +756,8 @@
           <div>
             <p class="footer-col-title">Contacto</p>
             <div class="footer-links">
-              <a href="https://wa.me/56958090338" target="_blank" rel="noopener noreferrer" class="js-cta-whatsapp">+56 9 5809 0338</a>
-              <a href="https://www.instagram.com/bunker.htc/" target="_blank" rel="noopener noreferrer">@bunker.htc</a>
+              <a href="https://wa.me/56912345678" target="_blank" rel="noopener noreferrer" class="js-cta-whatsapp">+56 9 1234 5678</a>
+              <a href="https://www.instagram.com/modu.santiago/" target="_blank" rel="noopener noreferrer">@modu.santiago</a>
               <a
                 href="https://www.google.com/maps/search/?api=1&query=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile"
                 target="_blank"
@@ -790,6 +815,75 @@
 
     <button class="to-top" id="to-top" aria-label="Volver arriba" type="button">↑</button>
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>Recibido</div>
+
+    <script>
+      (function () {
+        // === FADE UP ===
+        const fadeTargets = [
+          ...document.querySelectorAll('#servicios .card, #como-funciona .card, #equipo .card, #resultados .card'),
+          ...document.querySelectorAll('#planes .card'),
+          ...document.querySelectorAll('.faq-item'),
+          ...document.querySelectorAll('#servicios h2, #como-funciona h2, #equipo h2, #planes h2, #resultados h2, #faq h2, #ubicacion h2, #cta-final h2'),
+          ...document.querySelectorAll('.section-lead'),
+          ...document.querySelectorAll('.section-label'),
+          document.querySelector('.hero-stats'),
+          document.querySelector('.cta-wrap'),
+          document.querySelector('.schedule-box'),
+        ].filter(Boolean);
+
+        // Stagger cards que comparten el mismo padre
+        const staggered = new Set();
+        fadeTargets.forEach((el) => {
+          const parent = el.parentNode;
+          if (!staggered.has(parent)) {
+            staggered.add(parent);
+            const siblings = fadeTargets.filter(t => t.parentNode === parent);
+            siblings.forEach((sib, i) => {
+              if (i > 0) sib.style.transitionDelay = (i * 0.11) + 's';
+            });
+          }
+          el.classList.add('fade-up');
+        });
+
+        const fadeObs = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              fadeObs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+
+        fadeTargets.forEach(el => fadeObs.observe(el));
+
+        // === COUNTER ===
+        const animateCount = (el) => {
+          const target = parseInt(el.dataset.target, 10);
+          const prefix = el.dataset.prefix || '';
+          const suffix = el.dataset.suffix || '';
+          const duration = 1400;
+          const start = performance.now();
+          const tick = (now) => {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 4);
+            el.textContent = prefix + Math.round(eased * target) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        };
+
+        const countObs = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              animateCount(entry.target);
+              countObs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.8 });
+
+        document.querySelectorAll('.count-up').forEach(el => countObs.observe(el));
+      })();
+    </script>
 
   </body>
 </html>
