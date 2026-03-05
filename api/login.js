@@ -49,8 +49,7 @@ module.exports = async (req, res) => {
 
     const supabase = getSupabaseAdmin();
     const company = await getCompanyByReqHost(req);
-    console.log("DEBUG host:", req?.headers?.host, "company:", company?.id);
-    if (!company?.id) {
+if (!company?.id) {
       return sendJson(404, { error: "Company not found for host" });
     }
 
