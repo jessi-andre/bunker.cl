@@ -111,7 +111,7 @@ const saveAlumno = async () => {
   $("modal-save").textContent = "Guardando...";
 
   try {
-    const res = await fetch("/api/alumnos-upsert", {
+    const res = await fetch("/api/alumnos", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken || "" },
