@@ -105,11 +105,6 @@ module.exports = async (req, res) => {
       },
     });
 
-    console.log("checkout_session_created", {
-      company_id: company.id,
-      admin_id: session.admin_id,
-    });
-
     logEvent({
       request_id: requestId,
       route: "/api/create-checkout-session",

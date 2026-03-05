@@ -4,6 +4,8 @@ const {
   requireAuthAndTenant,
   getSupabaseAdmin,
   getBaseUrl,
+  createRequestId,
+  logEvent,
 } = require("../lib/_lib");
 
 module.exports = async function handler(req, res) {
@@ -13,6 +15,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const requestId = createRequestId(req);
     const { company, company_id, admin_id } = await requireAuthAndTenant(req);
 
     const supabase = getSupabaseAdmin();
@@ -37,9 +40,11 @@ module.exports = async function handler(req, res) {
       return_url: `${getBaseUrl()}/index.html#planes`,
     });
 
-    console.log("portal_session_created", {
+    logEvent({
+      request_id: requestId,
+      route: "/api/create-portal-session",
       company_id: company_id || company?.id,
-      admin_id,
+      result: "ok",
     });
 
     return json(res, 200, { url: portalSession.url });

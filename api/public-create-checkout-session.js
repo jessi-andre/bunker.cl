@@ -6,6 +6,7 @@ const {
   validateRequestOrigin,
   requireJsonBody,
   json,
+  logEvent,
 } = require("../lib/_lib");
 
 const isMissingAlumnosTable = (error) =>
@@ -123,10 +124,10 @@ module.exports = async (req, res) => {
       },
     });
 
-    console.log("public_checkout_created", {
+    logEvent({
+      route: "/api/public-create-checkout-session",
       company_id: company.id,
-      plan: requestedPlan,
-      email: normalizedEmail,
+      result: "ok",
     });
 
     return json(res, 200, { url: checkoutSession.url });
