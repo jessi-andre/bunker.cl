@@ -66,7 +66,7 @@ const loadAlumnos = async () => {
       <tr>
         <td>${a.email}</td>
         <td>${a.plan || "-"}</td>
-        <td><span class="badge ${badgeClass(a.status)}">${a.status}</span></td>
+        <td>${a.status ? `<span class="badge ${badgeClass(a.status)}">${a.status}</span>` : '<span style="color:#9ca3af;font-size:0.875rem;">-</span>'}</td>
         <td>${formatDate(a.created_at)}</td>
         <td><button class="btn btn-ghost" style="padding:0.25rem 0.75rem;font-size:0.875rem;" onclick="openModal('${a.email}','${a.plan || ''}','${a.status}')">Editar</button></td>
       </tr>
