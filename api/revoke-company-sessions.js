@@ -32,22 +32,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { company, company_id, admin_id } = await requireAuthAndTenant(req);
+    const { company, company_id, admin_id, session } = await requireAuthAndTenant(req);
+    const resolvedCompanyId = company_id || company?.id;
     const supabase = getSupabaseAdmin();
 
+    // Set revocation timestamp on the company so future token checks also catch pre-existing sessions
+    await supabase
+      .from("companies")
+      .update({ sessions_revoked_at: new Date().toISOString() })
+      .eq("id", resolvedCompanyId);
+
+    // Delete all sessions for the company except the current one so the requesting admin stays logged in
     const { error } = await supabase
       .from("admin_sessions")
       .delete()
-      .eq("company_id", company_id || company?.id);
+      .eq("company_id", resolvedCompanyId)
+      .neq("id", session.id);
 
     if (error) {
-      return json(res, 500, { error: error.message || "Revoke error" });
+      return json(res, 500, { error: "Internal server error" });
     }
-
-    console.log("company_sessions_revoked", {
-      company_id: company_id || company?.id,
-      admin_id,
-    });
 
     return json(res, 200, { ok: true });
   } catch (error) {

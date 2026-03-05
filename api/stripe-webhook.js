@@ -85,6 +85,17 @@ module.exports = async function handler(req, res) {
   try {
     const supabase = getSupabaseAdmin();
 
+    // Idempotency: skip already-processed events (Stripe can retry)
+    const { data: existing } = await supabase
+      .from("stripe_events")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .maybeSingle();
+
+    if (existing) {
+      return json(res, 200, { received: true });
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const customerId = normalizeId(session.customer);
@@ -165,6 +176,12 @@ module.exports = async function handler(req, res) {
 
       return json(res, 200, { received: true });
     }
+
+    // Mark event as processed
+    await supabase.from("stripe_events").insert({
+      event_id: event.id,
+      event_type: event.type,
+    }).then(() => {});
 
     return json(res, 200, { received: true });
   } catch (err) {

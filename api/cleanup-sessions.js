@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const {
   getSupabaseAdmin,
   setSecurityHeaders,
@@ -7,6 +8,21 @@ const {
   createRequestId,
   writeAuditLog,
 } = require("../lib/_lib");
+
+function safeEqual(a, b) {
+  try {
+    const bufA = Buffer.from(String(a));
+    const bufB = Buffer.from(String(b));
+    if (bufA.length !== bufB.length) {
+      // Still run timingSafeEqual to avoid length oracle
+      crypto.timingSafeEqual(bufA, Buffer.alloc(bufA.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch (_) {
+    return false;
+  }
+}
 
 module.exports = async (req, res) => {
   setSecurityHeaders(res);
@@ -27,7 +43,14 @@ module.exports = async (req, res) => {
   const expectedSecret = process.env.SESSION_CLEANUP_SECRET;
   const providedSecret = req.headers["x-cleanup-secret"];
 
-  if (!expectedSecret || !providedSecret || providedSecret !== expectedSecret) {
+  // Support Vercel Cron authentication (Authorization: Bearer <CRON_SECRET>)
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = String(req.headers["authorization"] || "");
+  const isVercelCron = cronSecret && safeEqual(authHeader, `Bearer ${cronSecret}`);
+
+  const isManualSecret = expectedSecret && providedSecret && safeEqual(providedSecret, expectedSecret);
+
+  if (!isVercelCron && !isManualSecret) {
     return json(res, 401, { error: "Unauthorized", request_id: requestId });
   }
 

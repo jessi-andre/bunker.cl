@@ -42,6 +42,11 @@ module.exports = async (req, res) => {
       return sendJson(400, { error: "Missing email or password" });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email))) {
+      return sendJson(400, { error: "Invalid email format" });
+    }
+
     const supabase = getSupabaseAdmin();
     const company = await getCompanyByReqHost(req);
     if (!company?.id) {
@@ -51,21 +56,29 @@ module.exports = async (req, res) => {
     const normalizedEmail = String(email).toLowerCase().trim();
     const host = String(req?.headers?.host || "");
     const ip = getClientIp(req);
-    const windowStartIso = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    let cnt = 0;
+    try {
+      const windowStartIso = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const { count: failedAttempts, error: attemptsError } = await supabase
+        .from("login_attempts")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", company.id)
+        .eq("ip", ip)
+        .gt("updated_at", windowStartIso);
 
-    const { count: failedAttempts, error: attemptsError } = await supabase
-      .from("login_attempts")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", company.id)
-      .eq("ip", ip)
-      .gt("updated_at", windowStartIso);
+      if (attemptsError) {
+        throw attemptsError;
+      }
 
-    if (attemptsError) {
-      return sendJson(500, { error: attemptsError.message || "Rate limit error" });
+      cnt = Number(failedAttempts || 0);
+    } catch (rateLimitError) {
+      console.error("rateLimit check error", {
+        host,
+        company_id: company.id,
+        ip,
+        error: rateLimitError?.message || String(rateLimitError),
+      });
     }
-
-    const cnt = Number(failedAttempts || 0);
-    console.log("rateLimit", { host, company_id: company.id, ip, cnt });
 
     if (cnt >= LOGIN_MAX_ATTEMPTS) {
       return sendJson(429, { error: "Too many attempts" });
@@ -79,7 +92,7 @@ module.exports = async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return sendJson(500, { error: error.message });
+      return sendJson(500, { error: "Internal server error" });
     }
 
     if (!admin?.password_hash) {
@@ -92,14 +105,23 @@ module.exports = async (req, res) => {
         .maybeSingle();
 
       if (otherTenantError) {
-        return sendJson(500, { error: otherTenantError.message });
+        return sendJson(500, { error: "Internal server error" });
       }
 
-      await supabase.from("login_attempts").insert({
-        company_id: company.id,
-        ip,
-        updated_at: new Date().toISOString(),
-      });
+      try {
+        await supabase.from("login_attempts").insert({
+          company_id: company.id,
+          ip,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (rateLimitInsertError) {
+        console.error("rateLimit insert error", {
+          host,
+          company_id: company.id,
+          ip,
+          error: rateLimitInsertError?.message || String(rateLimitInsertError),
+        });
+      }
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -119,11 +141,20 @@ module.exports = async (req, res) => {
 
     const validPassword = await bcrypt.compare(String(password), admin.password_hash);
     if (!validPassword) {
-      await supabase.from("login_attempts").insert({
-        company_id: company.id,
-        ip,
-        updated_at: new Date().toISOString(),
-      });
+      try {
+        await supabase.from("login_attempts").insert({
+          company_id: company.id,
+          ip,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (rateLimitInsertError) {
+        console.error("rateLimit insert error", {
+          host,
+          company_id: company.id,
+          ip,
+          error: rateLimitInsertError?.message || String(rateLimitInsertError),
+        });
+      }
       await writeAuditLog({
         request_id: requestId,
         route: "/api/login",
@@ -153,6 +184,8 @@ module.exports = async (req, res) => {
         .eq("company_id", company.id);
     }
 
+    const nowIso = new Date().toISOString();
+
     let { error: sessionError } = await supabase.from("admin_sessions").insert({
       admin_id: admin.id,
       company_id: company.id,
@@ -174,7 +207,7 @@ module.exports = async (req, res) => {
     }
 
     if (sessionError) {
-      return sendJson(500, { error: sessionError.message });
+      return sendJson(500, { error: "Internal server error" });
     }
 
     const isHttps =

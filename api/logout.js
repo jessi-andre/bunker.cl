@@ -4,12 +4,30 @@ const {
   parseCookies,
   sha256Hex,
   cookieSerialize,
+  validateRequestOrigin,
+  requireJsonBody,
+  requireCsrf,
+  setSecurityHeaders,
 } = require("../lib/_lib");
 
 module.exports = async function handler(req, res) {
+  setSecurityHeaders(res);
+
+  if (!validateRequestOrigin(req, res)) {
+    return;
+  }
+
+  if (!requireJsonBody(req, res)) {
+    return;
+  }
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { error: "Method not allowed" });
+  }
+
+  if (!requireCsrf(req, res)) {
+    return;
   }
 
   try {
