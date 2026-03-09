@@ -2,6 +2,12 @@ const form = document.getElementById("portal-form");
 const emailInput = document.getElementById("portal-email");
 const errorEl = document.getElementById("portal-error");
 
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("reason") === "subscription_inactive" && errorEl) {
+  errorEl.textContent = "Tu suscripción no está activa. Podés reactivarla desde el portal.";
+  errorEl.hidden = false;
+}
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorEl.hidden = true;

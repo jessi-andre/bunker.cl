@@ -3,6 +3,7 @@ const {
   requireAuthAndTenant,
   getSupabaseAdmin,
   getBaseUrl,
+  normalizeHost,
   validateRequestOrigin,
   requireJsonBody,
   json,
@@ -29,7 +30,7 @@ module.exports = async (req, res) => {
     const supabase = getSupabaseAdmin();
 
     const stripe = getStripe();
-    const { plan, planId, customer_email, email } = req.body || {};
+    const { plan, planId, customer_email, email, admin_name } = req.body || {};
     const requestedPlan = String(plan || planId || "").toLowerCase().trim();
     if (!requestedPlan) {
       return json(res, 400, { error: "Missing plan", request_id: requestId });
@@ -67,7 +68,10 @@ module.exports = async (req, res) => {
 
     const normalizedPlan = requestedPlan;
     const normalizedEmail = String(customer_email || email || "").trim().toLowerCase();
+    const normalizedAdminName = String(admin_name || "").trim().slice(0, 120);
     const baseUrl = getBaseUrl();
+    const companyDomain = normalizeHost(company?.domain || req?.headers?.host || "");
+    const companyName = String(company?.name || "").trim();
 
     const { data: subData, error: subError } = await supabase
       .from("company_subscriptions")
@@ -79,7 +83,30 @@ module.exports = async (req, res) => {
       return json(res, 500, { error: "Database query failed", request_id: requestId });
     }
 
+    const { data: adminRow, error: adminError } = await supabase
+      .from("company_admins")
+      .select("email")
+      .eq("id", session.admin_id)
+      .eq("company_id", company.id)
+      .maybeSingle();
+
+    if (adminError) {
+      return json(res, 500, { error: "Database query failed", request_id: requestId });
+    }
+
+    const adminEmail = String(normalizedEmail || adminRow?.email || "").trim().toLowerCase();
     const stripeCustomerId = String(subData?.stripe_customer_id || "").trim();
+    const onboardingMeta = {
+      company_id: String(company.id),
+      company_domain: companyDomain || null,
+      company_name: companyName || null,
+      plan: normalizedPlan,
+      email: normalizedEmail || null,
+      admin_email: adminEmail || null,
+      admin_name: normalizedAdminName || null,
+      admin_id: String(session.admin_id),
+      source: "admin_checkout",
+    };
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -89,18 +116,10 @@ module.exports = async (req, res) => {
       customer: stripeCustomerId || undefined,
       customer_email: stripeCustomerId ? undefined : (normalizedEmail || undefined),
       subscription_data: {
-        metadata: {
-          company_id: String(company.id),
-          plan: normalizedPlan,
-          email: normalizedEmail || null,
-          admin_id: String(session.admin_id),
-        },
+        metadata: onboardingMeta,
       },
       metadata: {
-        company_id: String(company.id),
-        admin_id: String(session.admin_id),
-        plan: normalizedPlan,
-        email: normalizedEmail || null,
+        ...onboardingMeta,
         planId: normalizedPlan,
       },
     });

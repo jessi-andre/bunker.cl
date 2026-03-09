@@ -3,6 +3,7 @@ const {
   getSupabaseAdmin,
   getCompanyByReqHost,
   getBaseUrl,
+  normalizeHost,
   validateRequestOrigin,
   requireJsonBody,
   json,
@@ -13,6 +14,12 @@ const isMissingAlumnosTable = (error) =>
   /relation .*alumnos.* does not exist|Could not find the table/i.test(
     String(error?.message || "")
   );
+
+const deriveCompanyNameFromHost = (host) => {
+  const normalizedHost = normalizeHost(host || "");
+  if (!normalizedHost) return "MODU Gym";
+  return normalizedHost.replace(/\./g, " ");
+};
 
 module.exports = async (req, res) => {
   if (!validateRequestOrigin(req, res)) {
@@ -36,14 +43,10 @@ module.exports = async (req, res) => {
       return json(res, 400, { error: "price_id is not allowed" });
     }
 
-    const company = await getCompanyByReqHost(req);
-    if (!company?.id) {
-      return json(res, 404, { error: "Company not found for host" });
-    }
-
-    const { plan, email } = req.body || {};
+    const { plan, email, admin_name } = req.body || {};
     const requestedPlan = String(plan || "").toLowerCase().trim();
     const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedAdminName = String(admin_name || "").trim().slice(0, 120);
 
     if (!requestedPlan) {
       return json(res, 400, { error: "Missing plan" });
@@ -54,6 +57,46 @@ module.exports = async (req, res) => {
     }
 
     const supabase = getSupabaseAdmin();
+    const requestHost = normalizeHost(req?.headers?.host || "");
+    let company = await getCompanyByReqHost(req);
+    let companyAutoCreated = false;
+
+    if (!company?.id) {
+      if (!requestHost) {
+        return json(res, 404, { error: "Company not found for host" });
+      }
+
+      const { data: createdCompany } = await supabase
+        .from("companies")
+        .insert({
+          domain: requestHost,
+          name: deriveCompanyNameFromHost(requestHost),
+          subscription_status: "pending",
+        })
+        .select("id, name, domain")
+        .maybeSingle();
+
+      if (createdCompany?.id) {
+        company = createdCompany;
+        companyAutoCreated = true;
+      } else {
+        const { data: existingCompany, error: existingCompanyError } = await supabase
+          .from("companies")
+          .select("id, name, domain")
+          .eq("domain", requestHost)
+          .maybeSingle();
+
+        if (existingCompanyError) {
+          return json(res, 500, { error: existingCompanyError.message || "Database query failed" });
+        }
+
+        if (!existingCompany?.id) {
+          return json(res, 500, { error: "Company bootstrap failed" });
+        }
+
+        company = existingCompany;
+      }
+    }
 
     const { data: companyRow, error: companyError } = await supabase
       .from("companies")
@@ -66,7 +109,7 @@ module.exports = async (req, res) => {
     }
 
     const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
-    if (!["active", "trialing"].includes(subscriptionStatus)) {
+    if (!companyAutoCreated && !["active", "trialing"].includes(subscriptionStatus)) {
       return json(res, 402, {
         error: "subscription_inactive",
         status: companyRow?.subscription_status ?? null,
@@ -101,6 +144,18 @@ module.exports = async (req, res) => {
 
     const stripe = getStripe();
     const baseUrl = getBaseUrl();
+    const companyDomain = normalizeHost(company?.domain || req?.headers?.host || "");
+    const companyName = String(company?.name || "").trim();
+    const onboardingMeta = {
+      company_id: String(company.id),
+      company_domain: companyDomain || null,
+      company_name: companyName || null,
+      plan: requestedPlan,
+      email: normalizedEmail,
+      admin_email: normalizedEmail,
+      admin_name: normalizedAdminName || null,
+      source: "public_checkout",
+    };
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -108,19 +163,9 @@ module.exports = async (req, res) => {
       line_items: [{ price, quantity: 1 }],
       success_url: `${baseUrl}/gracias.html?ok=1`,
       cancel_url: `${baseUrl}/index.html#planes`,
-      metadata: {
-        company_id: String(company.id),
-        plan: requestedPlan,
-        email: normalizedEmail,
-        source: "public_checkout",
-      },
+      metadata: onboardingMeta,
       subscription_data: {
-        metadata: {
-          company_id: String(company.id),
-          plan: requestedPlan,
-          email: normalizedEmail,
-          source: "public_checkout",
-        },
+        metadata: onboardingMeta,
       },
     });
 

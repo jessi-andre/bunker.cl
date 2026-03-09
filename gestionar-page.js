@@ -22,6 +22,10 @@ const ensureAdminSession = async () => {
     });
 
     if (response.status !== 200) {
+      if (response.status === 402) {
+        window.location.href = "/portal.html?reason=subscription_inactive";
+        return false;
+      }
       window.location.href = "/login.html";
       return false;
     }

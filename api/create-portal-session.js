@@ -16,7 +16,9 @@ module.exports = async function handler(req, res) {
 
   try {
     const requestId = createRequestId(req);
-    const { company, company_id, admin_id } = await requireAuthAndTenant(req);
+    const { company, company_id, admin_id } = await requireAuthAndTenant(req, {
+      allowInactiveSubscription: true,
+    });
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
