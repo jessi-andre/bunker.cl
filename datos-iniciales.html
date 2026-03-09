@@ -1,0 +1,186 @@
+﻿<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Datos iniciales | MODU</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script src="main.js" defer></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --accent: #a8ff3e;
+        --bg: #0a0a0a;
+        --surface: #111111;
+        --border: #1f1f1f;
+        --text: #ffffff;
+        --muted: #9ca3af;
+      }
+
+      body {
+        min-height: 100dvh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        padding: 1.25rem;
+      }
+
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .card {
+        margin-top: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+      }
+
+      h1 {
+        font-size: clamp(1.4rem, 5vw, 2rem);
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+      }
+
+      .lead {
+        color: var(--muted);
+        line-height: 1.55;
+        margin-bottom: 1.25rem;
+      }
+
+      form {
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+
+      label {
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid #2a2a2a;
+        background: #0c0c0c;
+        color: var(--text);
+        border-radius: 0.75rem;
+        padding: 0.75rem 0.85rem;
+        font-size: 0.95rem;
+      }
+
+      textarea {
+        min-height: 108px;
+        resize: vertical;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: rgba(168, 255, 62, 0.8);
+        box-shadow: 0 0 0 2px rgba(168, 255, 62, 0.16);
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.25rem;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.85rem 1rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #0a0a0a;
+      }
+
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: #d1d5db;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+
+      @media (min-width: 640px) {
+        body { padding: 2rem; }
+        .card { padding: 1.75rem; }
+        .actions { flex-direction: row; }
+        .actions .btn { flex: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>Completa tus datos iniciales</h1>
+        <p class="lead">
+          Esta informaci&#243;n nos ayuda a preparar tu evaluaci&#243;n inicial y a dise&#241;ar un plan acorde a tus objetivos.
+        </p>
+
+        <form>
+          <div class="field">
+            <label for="full-name">Nombre completo</label>
+            <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="Ej: Mar&#237;a P&#233;rez" required />
+          </div>
+
+          <div class="field">
+            <label for="goal">Objetivo</label>
+            <textarea id="goal" name="goal" placeholder="Ej: Bajar porcentaje de grasa, ganar fuerza y mejorar movilidad" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="availability">Disponibilidad horaria</label>
+            <input id="availability" name="availability" type="text" placeholder="Ej: Lunes, mi&#233;rcoles y viernes despu&#233;s de las 19:00" required />
+          </div>
+
+          <div class="field">
+            <label for="experience">Experiencia previa</label>
+            <textarea id="experience" name="experience" placeholder="Cu&#233;ntanos si ya entrenaste antes y qu&#233; tipo de rutina has seguido"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="injuries">Lesiones o consideraciones</label>
+            <textarea id="injuries" name="injuries" placeholder="Ej: Lesi&#243;n de rodilla, dolor lumbar, restricciones m&#233;dicas"></textarea>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Enviar datos iniciales</button>
+            <a href="gracias.html" class="btn btn-ghost">Volver</a>
+          </div>
+
+          <p class="note">
+            Este formulario est&#225; listo como primer paso de registro inicial. En la siguiente iteraci&#243;n se puede conectar al backend sin cambiar esta interfaz.
+          </p>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>
+
