@@ -129,14 +129,15 @@
         .header-wrap { overflow: visible; }
         .menu-toggle { display: flex; }
         .main-nav {
-          position: fixed; top: var(--header-h); right: auto; bottom: 0; left: 0;
+          position: fixed; top: var(--header-h); right: 0; bottom: 0; left: 0;
           width: 100vw; max-width: 100vw;
           background: #0a0a0a; flex-direction: column; align-items: flex-start;
           gap: 0; padding: 1.5rem 1.25rem;
-          transform: translateX(100vw); transition: transform 0.3s ease; overflow-y: auto;
-          z-index: 110; visibility: hidden; pointer-events: none;
+          overflow-y: auto; z-index: 110;
+          display: none;
         }
-        .main-nav.is-open { transform: translateX(0); visibility: visible; pointer-events: auto; }
+        .main-nav.is-open,
+        .main-nav.open { display: flex; }
         .main-nav a { font-size: 1.25rem; padding: 0.875rem 0; width: 100%; border-bottom: 1px solid var(--border); color: rgba(255,255,255,0.75); }
         .nav-cta { margin-top: 1.25rem; width: 100%; text-align: center; border-bottom: none !important; }
       }
