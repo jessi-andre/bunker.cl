@@ -49,6 +49,45 @@ const getCompanyByCustomerId = async (supabase, customerId) => {
   return data || null;
 };
 
+const getCompanyById = async (supabase, companyId) => {
+  if (!companyId) return null;
+
+  const { data, error } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("id", companyId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message || "Failed to fetch company");
+  return data || null;
+};
+
+const getCompanyBySubscriptionId = async (supabase, subscriptionId) => {
+  if (!subscriptionId) return null;
+
+  const { data, error } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("stripe_subscription_id", subscriptionId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message || "Failed to fetch company");
+  return data || null;
+};
+
+const resolveCompany = async (supabase, { customerId, companyId, subscriptionId }) => {
+  const byCustomer = await getCompanyByCustomerId(supabase, customerId);
+  if (byCustomer?.id) return byCustomer;
+
+  const byCompanyId = await getCompanyById(supabase, companyId);
+  if (byCompanyId?.id) return byCompanyId;
+
+  const bySubscription = await getCompanyBySubscriptionId(supabase, subscriptionId);
+  if (bySubscription?.id) return bySubscription;
+
+  return null;
+};
+
 const updateCompany = async (supabase, companyId, patch) => {
   const { error } = await supabase.from("companies").update(patch).eq("id", companyId);
   if (error) throw new Error(error.message || "Failed to update company");
@@ -106,12 +145,19 @@ module.exports = async function handler(req, res) {
       const session = event.data.object;
       const customerId = normalizeId(session.customer);
       const subscriptionId = normalizeId(session.subscription);
+      const metadataCompanyId = normalizeId(session?.metadata?.company_id);
 
-      const company = await getCompanyByCustomerId(supabase, customerId);
+      const company = await resolveCompany(supabase, {
+        customerId,
+        companyId: metadataCompanyId,
+        subscriptionId,
+      });
       if (!company?.id) {
         console.warn("stripe-webhook: company not found for customer", {
           event_type: event.type,
           customer_id: customerId,
+          company_id: metadataCompanyId,
+          subscription_id: subscriptionId,
         });
         return json(res, 200, { received: true });
       }
@@ -140,19 +186,28 @@ module.exports = async function handler(req, res) {
     ) {
       const subscription = event.data.object;
       const customerId = normalizeId(subscription.customer);
+      const subscriptionId = normalizeId(subscription.id);
+      const metadataCompanyId = normalizeId(subscription?.metadata?.company_id);
 
-      const company = await getCompanyByCustomerId(supabase, customerId);
+      const company = await resolveCompany(supabase, {
+        customerId,
+        companyId: metadataCompanyId,
+        subscriptionId,
+      });
       if (!company?.id) {
         console.warn("stripe-webhook: company not found for customer", {
           event_type: event.type,
           customer_id: customerId,
+          company_id: metadataCompanyId,
+          subscription_id: subscriptionId,
         });
         return json(res, 200, { received: true });
       }
 
       const patch = {
+        stripe_customer_id: customerId,
         subscription_status: subscription.status ? String(subscription.status).toLowerCase() : null,
-        stripe_subscription_id: normalizeId(subscription.id),
+        stripe_subscription_id: subscriptionId,
       };
 
       if (Number.isFinite(subscription.current_period_end)) {
@@ -166,19 +221,32 @@ module.exports = async function handler(req, res) {
     if (event.type === "invoice.payment_succeeded" || event.type === "invoice.payment_failed") {
       const invoice = event.data.object;
       const customerId = normalizeId(invoice.customer);
+      const subscriptionId = normalizeId(invoice.subscription);
 
-      const company = await getCompanyByCustomerId(supabase, customerId);
+      const company = await resolveCompany(supabase, {
+        customerId,
+        companyId: null,
+        subscriptionId,
+      });
       if (!company?.id) {
         console.warn("stripe-webhook: company not found for customer", {
           event_type: event.type,
           customer_id: customerId,
+          subscription_id: subscriptionId,
         });
         return json(res, 200, { received: true });
       }
 
-      await updateCompany(supabase, company.id, {
+      const patch = {
+        stripe_customer_id: customerId,
         subscription_status: event.type === "invoice.payment_succeeded" ? "active" : "past_due",
-      });
+      };
+
+      if (subscriptionId) {
+        patch.stripe_subscription_id = subscriptionId;
+      }
+
+      await updateCompany(supabase, company.id, patch);
 
       return json(res, 200, { received: true });
     }
