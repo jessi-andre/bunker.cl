@@ -59,7 +59,6 @@ module.exports = async (req, res) => {
     const supabase = getSupabaseAdmin();
     const requestHost = normalizeHost(req?.headers?.host || "");
     let company = await getCompanyByReqHost(req);
-    let companyAutoCreated = false;
 
     if (!company?.id) {
       if (!requestHost) {
@@ -78,7 +77,6 @@ module.exports = async (req, res) => {
 
       if (createdCompany?.id) {
         company = createdCompany;
-        companyAutoCreated = true;
       } else {
         const { data: existingCompany, error: existingCompanyError } = await supabase
           .from("companies")
@@ -96,24 +94,6 @@ module.exports = async (req, res) => {
 
         company = existingCompany;
       }
-    }
-
-    const { data: companyRow, error: companyError } = await supabase
-      .from("companies")
-      .select("subscription_status")
-      .eq("id", company.id)
-      .maybeSingle();
-
-    if (companyError) {
-      return json(res, 500, { error: companyError.message || "Database query failed" });
-    }
-
-    const subscriptionStatus = String(companyRow?.subscription_status || "").toLowerCase();
-    if (!companyAutoCreated && !["active", "trialing"].includes(subscriptionStatus)) {
-      return json(res, 402, {
-        error: "subscription_inactive",
-        status: companyRow?.subscription_status ?? null,
-      });
     }
 
     const priceByPlan = {
