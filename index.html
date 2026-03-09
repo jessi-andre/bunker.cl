@@ -125,6 +125,9 @@
       .nav-cta:hover { background: #bfff5e !important; }
       .menu-toggle { display: none; background: none; border: none; color: #fff; flex-direction: column; gap: 5px; padding: 4px; position: relative; z-index: 120; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
       .menu-toggle span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; transition: all 0.2s; }
+      .menu-toggle.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      .menu-toggle.is-open span:nth-child(2) { opacity: 0; }
+      .menu-toggle.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
       @media (max-width: 767px) {
         .site-header { overflow: visible; }
         .header-wrap { overflow: visible; }

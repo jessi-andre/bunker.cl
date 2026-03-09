@@ -137,6 +137,8 @@ const closeMenu = () => {
   if (!nav || !menuToggle) return;
   nav.classList.remove("is-open");
   nav.classList.remove("open");
+  menuToggle.classList.remove("is-open");
+  menuToggle.setAttribute("aria-label", "Abrir menú");
   menuToggle.setAttribute("aria-expanded", "false");
 };
 
@@ -144,6 +146,8 @@ const openMenu = () => {
   if (!nav || !menuToggle) return;
   nav.classList.add("is-open");
   nav.classList.add("open");
+  menuToggle.classList.add("is-open");
+  menuToggle.setAttribute("aria-label", "Cerrar menú");
   menuToggle.setAttribute("aria-expanded", "true");
 };
 
