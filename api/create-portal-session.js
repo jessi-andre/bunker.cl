@@ -19,8 +19,32 @@ module.exports = async function handler(req, res) {
     const { company, company_id, admin_id } = await requireAuthAndTenant(req, {
       allowInactiveSubscription: true,
     });
+    const providedEmail = String(req?.body?.email || "").trim().toLowerCase();
+    if (!providedEmail) {
+      return json(res, 400, { error: "MISSING_EMAIL" });
+    }
 
     const supabase = getSupabaseAdmin();
+    const { data: adminRow, error: adminError } = await supabase
+      .from("company_admins")
+      .select("email")
+      .eq("id", admin_id)
+      .eq("company_id", company_id)
+      .maybeSingle();
+
+    if (adminError) {
+      return json(res, 500, { error: adminError.message || "Database query failed" });
+    }
+
+    const expectedEmail = String(adminRow?.email || "").trim().toLowerCase();
+    if (!expectedEmail) {
+      return json(res, 403, { error: "EMAIL_NOT_ALLOWED" });
+    }
+
+    if (providedEmail !== expectedEmail) {
+      return json(res, 403, { error: "EMAIL_MISMATCH" });
+    }
+
     const { data, error } = await supabase
       .from("company_subscriptions")
       .select("stripe_customer_id")

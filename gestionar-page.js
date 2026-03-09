@@ -90,6 +90,12 @@ const form = document.getElementById("portal-form");
 const emailInput = document.getElementById("portal-email");
 const errorEl = document.getElementById("portal-error");
 const logoutBtn = document.getElementById("logout-btn");
+const PORTAL_ERROR_MESSAGES = {
+  MISSING_EMAIL: "Ingresá un email para continuar.",
+  EMAIL_NOT_ALLOWED: "No encontramos un email habilitado para esta cuenta.",
+  EMAIL_MISMATCH: "El email ingresado no coincide con el de tu sesión.",
+  NO_STRIPE_CUSTOMER: "No encontramos una suscripción asociada para esta cuenta.",
+};
 
 (async () => {
   const ok = await ensureAdminSession();
@@ -126,8 +132,11 @@ form?.addEventListener("submit", async (event) => {
       body: JSON.stringify({ email: emailInput.value.trim() }),
     });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "No pudimos abrir el portal");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const code = String(data?.error || "");
+      throw new Error(PORTAL_ERROR_MESSAGES[code] || "No pudimos abrir el portal");
+    }
     window.location.href = data.url;
   } catch (error) {
     errorEl.textContent = error.message || "No pudimos abrir el portal";
