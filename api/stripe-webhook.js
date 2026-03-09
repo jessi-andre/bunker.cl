@@ -289,16 +289,19 @@ const syncAlumnoFromStripe = async (
     if (updateByEmailError) {
       console.error("stripe-webhook: alumno update by company_id+email failed", {
         ...logBase,
-        error: updateByEmailError.message || String(updateByEmailError),
+        supabase_error: updateByEmailError,
       });
       throw new Error(updateByEmailError.message || "Failed to update alumno by email");
     }
 
     const updatedByEmailCount = Array.isArray(updatedRows) ? updatedRows.length : 0;
-    console.log("stripe-webhook: alumno updated by company_id+email", {
+    console.log("stripe-webhook: alumno update by company_id+email result", {
       ...logBase,
       updated_rows: updatedByEmailCount,
     });
+    if (updatedByEmailCount === 0) {
+      console.log("0 rows updated by email", logBase);
+    }
     if (updatedByEmailCount > 0) return;
 
     // Fallback for legacy rows created without company_id.
@@ -313,7 +316,7 @@ const syncAlumnoFromStripe = async (
     if (updateLegacyError) {
       console.error("stripe-webhook: alumno update by null company_id+email failed", {
         ...logBase,
-        error: updateLegacyError.message || String(updateLegacyError),
+        supabase_error: updateLegacyError,
       });
       throw new Error(updateLegacyError.message || "Failed to update legacy alumno by email");
     }
@@ -339,16 +342,19 @@ const syncAlumnoFromStripe = async (
     if (updateByCustomerError) {
       console.error("stripe-webhook: alumno update by company_id+customer failed", {
         ...logBase,
-        error: updateByCustomerError.message || String(updateByCustomerError),
+        supabase_error: updateByCustomerError,
       });
       throw new Error(updateByCustomerError.message || "Failed to update alumno by customer");
     }
 
     const updatedByCustomerCount = Array.isArray(updatedByCustomerRows) ? updatedByCustomerRows.length : 0;
-    console.log("stripe-webhook: alumno updated by company_id+customer", {
+    console.log("stripe-webhook: alumno update by company_id+customer result", {
       ...logBase,
       updated_rows: updatedByCustomerCount,
     });
+    if (updatedByCustomerCount === 0) {
+      console.log("0 rows updated by customer", logBase);
+    }
     if (updatedByCustomerCount > 0) return;
   }
 
@@ -365,6 +371,10 @@ const syncAlumnoFromStripe = async (
   const { error: upsertCompanyEmailError } = await supabase
     .from("alumnos")
     .upsert(upsertPayload, { onConflict: "company_id,email" });
+  console.log("upsert alumnos executed", {
+    ...logBase,
+    conflict_target: "company_id,email",
+  });
 
   if (!upsertCompanyEmailError) {
     console.log("stripe-webhook: alumno upserted with conflict target company_id,email", logBase);
@@ -373,12 +383,16 @@ const syncAlumnoFromStripe = async (
 
   console.warn("stripe-webhook: alumno upsert company_id,email failed", {
     ...logBase,
-    error: upsertCompanyEmailError.message || String(upsertCompanyEmailError),
+    supabase_error: upsertCompanyEmailError,
   });
 
   const { error: upsertEmailError } = await supabase
     .from("alumnos")
     .upsert(upsertPayload, { onConflict: "email" });
+  console.log("upsert alumnos executed", {
+    ...logBase,
+    conflict_target: "email",
+  });
 
   if (!upsertEmailError) {
     console.log("stripe-webhook: alumno upserted with conflict target email", logBase);
@@ -387,8 +401,8 @@ const syncAlumnoFromStripe = async (
 
   console.error("stripe-webhook: alumno upsert failed for all conflict targets", {
     ...logBase,
-    error_company_email: upsertCompanyEmailError.message || String(upsertCompanyEmailError),
-    error_email: upsertEmailError.message || String(upsertEmailError),
+    supabase_error_company_email: upsertCompanyEmailError,
+    supabase_error_email: upsertEmailError,
   });
   throw new Error(upsertEmailError.message || "Failed to upsert alumno from Stripe");
 };
@@ -459,6 +473,9 @@ module.exports = async function handler(req, res) {
       const metadataPlan = normalizeText(session?.metadata?.plan, 32).toLowerCase();
       const linePriceId = normalizeId(session?.line_items?.data?.[0]?.price?.id);
       const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: linePriceId });
+      console.log("WEBHOOK EVENT:", event.type);
+      console.log("WEBHOOK COMPANY_ID:", metadataCompanyId);
+      console.log("WEBHOOK PLAN:", resolvedPlan);
 
       const status = session.subscription_status
         ? String(session.subscription_status).toLowerCase()
@@ -482,6 +499,7 @@ module.exports = async function handler(req, res) {
         });
         return json(res, 200, { received: true });
       }
+      console.log("WEBHOOK RESOLVED COMPANY_ID:", company.id);
 
       const patch = {
         stripe_customer_id: customerId,
@@ -512,7 +530,7 @@ module.exports = async function handler(req, res) {
         console.warn("stripe-webhook: failed to ensure company admin", {
           event_type: event.type,
           company_id: company.id,
-          admin_email: metadataAdminEmail,
+          admin_email: sessionEmail,
           error: adminErr?.message || String(adminErr),
         });
       }
@@ -555,6 +573,7 @@ module.exports = async function handler(req, res) {
         });
         return json(res, 200, { received: true });
       }
+      console.log("WEBHOOK RESOLVED COMPANY_ID:", company.id);
 
       const patch = {
         stripe_customer_id: customerId,
@@ -603,6 +622,12 @@ module.exports = async function handler(req, res) {
       const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: invoicePriceId });
       const isSuccessfulInvoice =
         event.type === "invoice.payment_succeeded" || event.type === "invoice.paid";
+      console.log("WEBHOOK EVENT:", event.type);
+      console.log("WEBHOOK EMAIL:", metadataAdminEmail);
+      console.log("WEBHOOK COMPANY_ID:", metadataCompanyId);
+      console.log("WEBHOOK CUSTOMER:", customerId);
+      console.log("WEBHOOK SUB:", subscriptionId);
+      console.log("WEBHOOK PLAN:", resolvedPlan);
 
       const company = await ensureCompany(supabase, {
         customerId,
