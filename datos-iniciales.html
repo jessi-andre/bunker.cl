@@ -153,7 +153,7 @@
           Esta informaci&#243;n nos ayuda a preparar tu evaluaci&#243;n inicial y a dise&#241;ar un plan acorde a tus objetivos.
         </p>
 
-        <form id="initial-data-form" method="post" action="/api/public-initial-data">
+        <form id="initial-data-form" method="post" action="/api/save-onboarding">
           <div class="field">
             <label for="full-name">Nombre completo</label>
             <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="Ej: Mar&#237;a P&#233;rez" required />
@@ -186,7 +186,7 @@
           <p class="submit-status" id="submit-status" aria-live="polite"></p>
 
           <p class="note">
-            Este formulario est&#225; listo como primer paso de registro inicial. En la siguiente iteraci&#243;n se puede conectar al backend sin cambiar esta interfaz.
+            Esta informaci&#243;n queda guardada para tu proceso inicial y nos ayuda a preparar tu plan personalizado.
           </p>
         </form>
       </section>
@@ -198,8 +198,9 @@
         const statusEl = document.getElementById("submit-status");
         if (!form || !submitBtn || !statusEl) return;
 
-        const endpoint = form.getAttribute("action") || "/api/public-initial-data";
+        const endpoint = form.getAttribute("action") || "/api/save-onboarding";
         const defaultBtnText = submitBtn.textContent;
+        let csrfToken = null;
 
         function setStatus(state, message) {
           statusEl.setAttribute("data-state", state);
@@ -211,6 +212,45 @@
           submitBtn.setAttribute("aria-busy", String(isLoading));
           submitBtn.textContent = isLoading ? "Enviando..." : defaultBtnText;
         }
+
+        async function fetchCsrfToken() {
+          if (csrfToken) return csrfToken;
+          const response = await fetch("/api/csrf", {
+            method: "GET",
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error("CSRF_INIT_FAILED");
+          }
+
+          const data = await response.json().catch(() => ({}));
+          csrfToken = data?.csrf_token || data?.csrfToken || null;
+          if (!csrfToken) throw new Error("CSRF_INIT_FAILED");
+          return csrfToken;
+        }
+
+        async function checkExistingOnboarding() {
+          try {
+            const response = await fetch(endpoint, {
+              method: "GET",
+              credentials: "include",
+            });
+
+            if (response.status === 401) {
+              setStatus("error", "Inicia sesi&#243;n para completar tus datos iniciales.");
+              return;
+            }
+
+            if (!response.ok) return;
+            const data = await response.json().catch(() => ({}));
+            if (data?.onboarding_completed === true) {
+              window.location.href = "/gestionar.html";
+            }
+          } catch (_) {}
+        }
+
+        checkExistingOnboarding();
 
         form.addEventListener("submit", async function (event) {
           event.preventDefault();
@@ -233,21 +273,38 @@
           setStatus("loading", "Enviando tus datos...");
 
           try {
+            const token = await fetchCsrfToken();
             const response = await fetch(endpoint, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                "x-csrf-token": token,
+              },
               body: JSON.stringify(payload),
             });
 
             if (response.ok) {
               form.reset();
-              setStatus("success", "Tus datos fueron enviados correctamente.");
+              setStatus("success", "Tus datos fueron enviados correctamente. Te estamos redirigiendo...");
+              window.setTimeout(() => {
+                window.location.href = "/gestionar.html";
+              }, 650);
               return;
             }
 
-            if (response.status === 404 || response.status === 405) {
-              form.reset();
-              setStatus("success", "Tus datos fueron registrados. Pronto te contactaremos por WhatsApp.");
+            if (response.status === 401) {
+              setStatus("error", "Tu sesi&#243;n expir&#243;. Inicia sesi&#243;n para continuar.");
+              return;
+            }
+
+            if (response.status === 403) {
+              setStatus("error", "No pudimos validar tu sesi&#243;n. Recarga e intenta nuevamente.");
+              return;
+            }
+
+            if (response.status === 400) {
+              setStatus("error", "Completa los campos obligatorios antes de enviar.");
               return;
             }
 
