@@ -247,11 +247,26 @@ const resolvePlan = ({ explicitPlan, priceId }) => {
 
 const syncAlumnoFromStripe = async (
   supabase,
-  { companyId, email, customerId, subscriptionId, status = "active", plan }
+  { eventId, eventType, companyId, email, customerId, subscriptionId, status = "active", plan }
 ) => {
-  if (!companyId) return;
-
   const normalizedEmail = normalizeEmail(email);
+  const logBase = {
+    event_id: eventId || null,
+    event_type: eventType || null,
+    company_id: companyId || null,
+    email: normalizedEmail || null,
+    customer_id: customerId || null,
+    subscription_id: subscriptionId || null,
+    status: status || null,
+    plan: plan || null,
+  };
+
+  console.log("stripe-webhook: alumno sync start", logBase);
+
+  if (!companyId) {
+    throw new Error("ALUMNO_SYNC_MISSING_COMPANY_ID");
+  }
+
   const payload = {
     company_id: companyId,
     status,
@@ -271,8 +286,44 @@ const syncAlumnoFromStripe = async (
       .select("id")
       .limit(1);
 
-    if (updateByEmailError) throw new Error(updateByEmailError.message || "Failed to update alumno by email");
-    if (Array.isArray(updatedRows) && updatedRows.length > 0) return;
+    if (updateByEmailError) {
+      console.error("stripe-webhook: alumno update by company_id+email failed", {
+        ...logBase,
+        error: updateByEmailError.message || String(updateByEmailError),
+      });
+      throw new Error(updateByEmailError.message || "Failed to update alumno by email");
+    }
+
+    const updatedByEmailCount = Array.isArray(updatedRows) ? updatedRows.length : 0;
+    console.log("stripe-webhook: alumno updated by company_id+email", {
+      ...logBase,
+      updated_rows: updatedByEmailCount,
+    });
+    if (updatedByEmailCount > 0) return;
+
+    // Fallback for legacy rows created without company_id.
+    const { data: updatedLegacyRows, error: updateLegacyError } = await supabase
+      .from("alumnos")
+      .update(payload)
+      .is("company_id", null)
+      .eq("email", normalizedEmail)
+      .select("id")
+      .limit(1);
+
+    if (updateLegacyError) {
+      console.error("stripe-webhook: alumno update by null company_id+email failed", {
+        ...logBase,
+        error: updateLegacyError.message || String(updateLegacyError),
+      });
+      throw new Error(updateLegacyError.message || "Failed to update legacy alumno by email");
+    }
+
+    const updatedLegacyCount = Array.isArray(updatedLegacyRows) ? updatedLegacyRows.length : 0;
+    console.log("stripe-webhook: alumno updated by null company_id+email", {
+      ...logBase,
+      updated_rows: updatedLegacyCount,
+    });
+    if (updatedLegacyCount > 0) return;
   }
 
   // Secondary match: existing row already linked by Stripe customer.
@@ -286,25 +337,60 @@ const syncAlumnoFromStripe = async (
       .limit(1);
 
     if (updateByCustomerError) {
+      console.error("stripe-webhook: alumno update by company_id+customer failed", {
+        ...logBase,
+        error: updateByCustomerError.message || String(updateByCustomerError),
+      });
       throw new Error(updateByCustomerError.message || "Failed to update alumno by customer");
     }
-    if (Array.isArray(updatedByCustomerRows) && updatedByCustomerRows.length > 0) return;
+
+    const updatedByCustomerCount = Array.isArray(updatedByCustomerRows) ? updatedByCustomerRows.length : 0;
+    console.log("stripe-webhook: alumno updated by company_id+customer", {
+      ...logBase,
+      updated_rows: updatedByCustomerCount,
+    });
+    if (updatedByCustomerCount > 0) return;
+  }
+
+  if (!normalizedEmail) {
+    console.error("stripe-webhook: alumno sync aborted, missing email", logBase);
+    throw new Error("ALUMNO_SYNC_MISSING_EMAIL");
   }
 
   // Last-resort upsert to keep onboarding/activation consistent.
-  if (normalizedEmail) {
-    const { error: upsertError } = await supabase.from("alumnos").upsert(
-      {
-        ...payload,
-        email: normalizedEmail,
-      },
-      { onConflict: "company_id,email" }
-    );
+  const upsertPayload = {
+    ...payload,
+    email: normalizedEmail,
+  };
+  const { error: upsertCompanyEmailError } = await supabase
+    .from("alumnos")
+    .upsert(upsertPayload, { onConflict: "company_id,email" });
 
-    if (upsertError) {
-      throw new Error(upsertError.message || "Failed to upsert alumno from Stripe");
-    }
+  if (!upsertCompanyEmailError) {
+    console.log("stripe-webhook: alumno upserted with conflict target company_id,email", logBase);
+    return;
   }
+
+  console.warn("stripe-webhook: alumno upsert company_id,email failed", {
+    ...logBase,
+    error: upsertCompanyEmailError.message || String(upsertCompanyEmailError),
+  });
+
+  const { error: upsertEmailError } = await supabase
+    .from("alumnos")
+    .upsert(upsertPayload, { onConflict: "email" });
+
+  if (!upsertEmailError) {
+    console.log("stripe-webhook: alumno upserted with conflict target email", logBase);
+    return;
+  }
+
+  console.error("stripe-webhook: alumno upsert failed for all conflict targets", {
+    ...logBase,
+    error_company_email: upsertCompanyEmailError.message || String(upsertCompanyEmailError),
+    error_email: upsertEmailError.message || String(upsertEmailError),
+  });
+  throw new Error(upsertEmailError.message || "Failed to upsert alumno from Stripe");
 };
 
 module.exports = async function handler(req, res) {
@@ -362,10 +448,14 @@ module.exports = async function handler(req, res) {
       const metadataCompanyId = normalizeId(session?.metadata?.company_id);
       const metadataCompanyDomain = normalizeText(session?.metadata?.company_domain, 255);
       const metadataCompanyName = normalizeText(session?.metadata?.company_name, 120);
-      const metadataAdminEmail =
-        normalizeEmail(session?.metadata?.admin_email) ||
+      const sessionEmail =
+        normalizeEmail(session?.customer_details?.email) ||
+        normalizeEmail(session?.customer_email) ||
         normalizeEmail(session?.metadata?.email) ||
-        normalizeEmail(session?.customer_details?.email);
+        normalizeEmail(session?.metadata?.admin_email);
+      console.log("WEBHOOK EMAIL:", sessionEmail);
+      console.log("WEBHOOK CUSTOMER:", customerId);
+      console.log("WEBHOOK SUB:", subscriptionId);
       const metadataPlan = normalizeText(session?.metadata?.plan, 32).toLowerCase();
       const linePriceId = normalizeId(session?.line_items?.data?.[0]?.price?.id);
       const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: linePriceId });
@@ -403,27 +493,20 @@ module.exports = async function handler(req, res) {
       }
 
       await updateCompany(supabase, company.id, patch);
-      try {
-        await syncAlumnoFromStripe(supabase, {
-          companyId: company.id,
-          email: metadataAdminEmail,
-          customerId,
-          subscriptionId,
-          status: "active",
-          plan: resolvedPlan,
-        });
-      } catch (alumnoErr) {
-        console.warn("stripe-webhook: failed to sync alumno", {
-          event_type: event.type,
-          company_id: company.id,
-          email: metadataAdminEmail,
-          error: alumnoErr?.message || String(alumnoErr),
-        });
-      }
+      await syncAlumnoFromStripe(supabase, {
+        eventId: event.id,
+        eventType: event.type,
+        companyId: company.id,
+        email: sessionEmail,
+        customerId,
+        subscriptionId,
+        status: "active",
+        plan: resolvedPlan,
+      });
       try {
         await ensureCompanyAdmin(supabase, {
           companyId: company.id,
-          adminEmail: metadataAdminEmail,
+          adminEmail: sessionEmail,
         });
       } catch (adminErr) {
         console.warn("stripe-webhook: failed to ensure company admin", {
@@ -512,7 +595,9 @@ module.exports = async function handler(req, res) {
       const metadataCompanyDomain = normalizeText(invoice?.metadata?.company_domain, 255);
       const metadataCompanyName = normalizeText(invoice?.metadata?.company_name, 120);
       const metadataAdminEmail =
-        normalizeEmail(invoice?.metadata?.admin_email) || normalizeEmail(invoice?.metadata?.email);
+        normalizeEmail(invoice?.metadata?.admin_email) ||
+        normalizeEmail(invoice?.metadata?.email) ||
+        normalizeEmail(invoice?.customer_email);
       const metadataPlan = normalizeText(invoice?.metadata?.plan, 32).toLowerCase();
       const invoicePriceId = normalizeId(invoice?.lines?.data?.[0]?.price?.id);
       const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: invoicePriceId });
@@ -549,23 +634,16 @@ module.exports = async function handler(req, res) {
 
       await updateCompany(supabase, company.id, patch);
       if (isSuccessfulInvoice) {
-        try {
-          await syncAlumnoFromStripe(supabase, {
-            companyId: company.id,
-            email: metadataAdminEmail,
-            customerId,
-            subscriptionId,
-            status: "active",
-            plan: resolvedPlan,
-          });
-        } catch (alumnoErr) {
-          console.warn("stripe-webhook: failed to sync alumno", {
-            event_type: event.type,
-            company_id: company.id,
-            email: metadataAdminEmail,
-            error: alumnoErr?.message || String(alumnoErr),
-          });
-        }
+        await syncAlumnoFromStripe(supabase, {
+          eventId: event.id,
+          eventType: event.type,
+          companyId: company.id,
+          email: metadataAdminEmail,
+          customerId,
+          subscriptionId,
+          status: "active",
+          plan: resolvedPlan,
+        });
       }
       try {
         await ensureCompanyAdmin(supabase, {
