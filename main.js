@@ -51,6 +51,7 @@ const ctaPhone = document.querySelectorAll(".js-cta-phone");
 
 let selectedPlanId = "";
 let lastScrollY = window.scrollY;
+let lastMenuToggleAt = 0;
 
 const getPlanDetails = (button) => {
   const planId = button.getAttribute("data-plan")?.trim();
@@ -146,10 +147,23 @@ const openMenu = () => {
   menuToggle.setAttribute("aria-expanded", "true");
 };
 
-menuToggle?.addEventListener("click", () => {
+const toggleMenu = (event) => {
+  if (!nav || !menuToggle) return;
+
+  // Avoid duplicate click/touch toggles on some mobile browsers.
+  const now = Date.now();
+  if (now - lastMenuToggleAt < 300) return;
+  lastMenuToggleAt = now;
+
+  if (event?.cancelable) event.preventDefault();
+  event?.stopPropagation?.();
+
   const isOpen = nav?.classList.contains("is-open");
   isOpen ? closeMenu() : openMenu();
-});
+};
+
+menuToggle?.addEventListener("click", toggleMenu);
+menuToggle?.addEventListener("touchend", toggleMenu, { passive: false });
 
 navLinks.forEach((link) => {
   link.addEventListener("click", closeMenu);
