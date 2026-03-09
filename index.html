@@ -261,6 +261,9 @@
       #checkout-email { width: 100%; padding: 0.8125rem 1rem; border-radius: 8px; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 1rem; margin-bottom: 0.75rem; transition: border-color 0.2s, outline 0.2s; }
       #checkout-email:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-color: transparent; }
       .modal-plan-summary p { font-size: 0.8125rem; color: rgba(255,255,255,0.35); line-height: 1.6; margin-bottom: 0.25rem; }
+      .modal-step-title { font-size: 0.875rem; color: rgba(255,255,255,0.85); margin-bottom: 0.5rem; font-weight: 700; }
+      .modal-step-note { font-size: 0.8125rem; color: rgba(255,255,255,0.45); margin-bottom: 0.75rem; }
+      #modal-email-block[hidden] { display: none; }
       .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
       .modal-actions .btn { flex: 1; }
 
@@ -801,23 +804,27 @@
       <div class="modal-content" role="document">
         <h2 id="checkout-modal-title">Revisá tu plan antes de continuar</h2>
         <div class="modal-plan-summary" aria-live="polite">
+          <p class="modal-step-title" id="modal-step-title">Paso 1 de 2: resumen de inscripción</p>
           <p id="modal-plan-name">Plan seleccionado</p>
           <p id="modal-plan-price"></p>
           <ul id="modal-plan-includes"></ul>
-          <label class="checkout-email-label" for="checkout-email">Tu email para activar la suscripción</label>
-          <input
-            id="checkout-email"
-            type="email"
-            placeholder="tuemail@dominio.com"
-            autocomplete="email"
-            required
-          />
-          <p>Compromiso mensual. Cancelación con 5 días de aviso.</p>
-          <p>Serás redirigido a Stripe para el pago seguro.</p>
+          <p class="modal-step-note">Frecuencia: mensual · cobro automático vía Stripe.</p>
+          <div id="modal-email-block" hidden>
+            <label class="checkout-email-label" for="checkout-email">Email para activar tu plan</label>
+            <input
+              id="checkout-email"
+              type="email"
+              placeholder="tuemail@dominio.com"
+              autocomplete="email"
+              required
+            />
+            <p>Este email se usará para tu comprobante y gestión de suscripción.</p>
+            <p>Serás redirigido a Stripe para completar el pago seguro.</p>
+          </div>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" id="modal-cancel" type="button">Cancelar</button>
-          <button class="btn btn-accent" id="modal-confirm" type="button">Continuar al checkout seguro</button>
+          <button class="btn btn-accent" id="modal-confirm" type="button">Continuar</button>
         </div>
       </div>
     </div>

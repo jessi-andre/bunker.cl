@@ -37,6 +37,8 @@ const modalBackdrop = modal?.querySelector("[data-close-modal]");
 const modalPlanName = document.getElementById("modal-plan-name");
 const modalPlanPrice = document.getElementById("modal-plan-price");
 const modalPlanIncludes = document.getElementById("modal-plan-includes");
+const modalStepTitle = document.getElementById("modal-step-title");
+const modalEmailBlock = document.getElementById("modal-email-block");
 const checkoutEmailInput = document.getElementById("checkout-email");
 const faqTriggers = document.querySelectorAll(".faq-trigger");
 const contactForm = document.getElementById("contact-form");
@@ -52,6 +54,7 @@ const ctaPhone = document.querySelectorAll(".js-cta-phone");
 let selectedPlanId = "";
 let lastScrollY = window.scrollY;
 let lastMenuToggleAt = 0;
+let checkoutStepReady = false;
 
 const getPlanDetails = (button) => {
   const planId = button.getAttribute("data-plan")?.trim();
@@ -205,11 +208,20 @@ const openModal = () => {
   if (!modal) return;
   modal.hidden = false;
   document.body.style.overflow = "hidden";
+  checkoutStepReady = false;
+  if (modalStepTitle) {
+    modalStepTitle.textContent = "Paso 1 de 2: resumen de inscripción";
+  }
+  if (modalEmailBlock) {
+    modalEmailBlock.hidden = true;
+  }
   if (checkoutEmailInput) {
     checkoutEmailInput.value = "";
-    checkoutEmailInput.focus();
-  } else {
-    modalConfirm?.focus();
+  }
+  if (modalConfirm) {
+    modalConfirm.textContent = "Continuar";
+    modalConfirm.disabled = false;
+    modalConfirm.focus();
   }
 };
 
@@ -217,6 +229,7 @@ const closeModal = () => {
   if (!modal) return;
   modal.hidden = true;
   document.body.style.overflow = "";
+  checkoutStepReady = false;
 };
 
 planButtons.forEach((button) => {
@@ -233,6 +246,19 @@ planButtons.forEach((button) => {
 
 modalConfirm?.addEventListener("click", async () => {
   if (!selectedPlanId) return closeModal();
+
+  if (!checkoutStepReady) {
+    checkoutStepReady = true;
+    if (modalStepTitle) {
+      modalStepTitle.textContent = "Paso 2 de 2: confirmá tu email y continuá al pago";
+    }
+    if (modalEmailBlock) {
+      modalEmailBlock.hidden = false;
+    }
+    modalConfirm.textContent = "Continuar al pago";
+    checkoutEmailInput?.focus();
+    return;
+  }
 
   const email = checkoutEmailInput?.value?.trim() || "";
   if (!checkoutEmailInput?.checkValidity()) {
@@ -252,7 +278,7 @@ modalConfirm?.addEventListener("click", async () => {
     const message = error instanceof Error ? error.message : "No pudimos iniciar el checkout.";
     showToast(message);
     modalConfirm.disabled = false;
-    modalConfirm.textContent = "Continuar al checkout seguro";
+    modalConfirm.textContent = "Continuar al pago";
   }
 });
 

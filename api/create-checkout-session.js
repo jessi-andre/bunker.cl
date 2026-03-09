@@ -111,7 +111,7 @@ module.exports = async (req, res) => {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price, quantity: 1 }],
-      success_url: `${baseUrl}/gracias.html?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/gracias.html?session_id={CHECKOUT_SESSION_ID}&plan=${normalizedPlan}`,
       cancel_url: `${baseUrl}/index.html#planes`,
       customer: stripeCustomerId || undefined,
       customer_email: stripeCustomerId ? undefined : (normalizedEmail || undefined),
