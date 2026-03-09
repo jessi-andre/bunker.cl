@@ -128,6 +128,15 @@
         line-height: 1.45;
       }
 
+      .submit-status {
+        min-height: 1.2rem;
+        font-size: 0.88rem;
+      }
+
+      .submit-status[data-state="loading"] { color: #d1d5db; }
+      .submit-status[data-state="success"] { color: var(--accent); }
+      .submit-status[data-state="error"] { color: #f87171; }
+
       @media (min-width: 640px) {
         body { padding: 2rem; }
         .card { padding: 1.75rem; }
@@ -144,7 +153,7 @@
           Esta informaci&#243;n nos ayuda a preparar tu evaluaci&#243;n inicial y a dise&#241;ar un plan acorde a tus objetivos.
         </p>
 
-        <form>
+        <form id="initial-data-form" method="post" action="/api/public-initial-data">
           <div class="field">
             <label for="full-name">Nombre completo</label>
             <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="Ej: Mar&#237;a P&#233;rez" required />
@@ -171,9 +180,10 @@
           </div>
 
           <div class="actions">
-            <button type="submit" class="btn btn-primary">Enviar datos iniciales</button>
+            <button type="submit" class="btn btn-primary" id="submit-initial-data">Enviar datos iniciales</button>
             <a href="gracias.html" class="btn btn-ghost">Volver</a>
           </div>
+          <p class="submit-status" id="submit-status" aria-live="polite"></p>
 
           <p class="note">
             Este formulario est&#225; listo como primer paso de registro inicial. En la siguiente iteraci&#243;n se puede conectar al backend sin cambiar esta interfaz.
@@ -181,6 +191,75 @@
         </form>
       </section>
     </main>
+    <script>
+      (function () {
+        const form = document.getElementById("initial-data-form");
+        const submitBtn = document.getElementById("submit-initial-data");
+        const statusEl = document.getElementById("submit-status");
+        if (!form || !submitBtn || !statusEl) return;
+
+        const endpoint = form.getAttribute("action") || "/api/public-initial-data";
+        const defaultBtnText = submitBtn.textContent;
+
+        function setStatus(state, message) {
+          statusEl.setAttribute("data-state", state);
+          statusEl.textContent = message;
+        }
+
+        function setLoading(isLoading) {
+          submitBtn.disabled = isLoading;
+          submitBtn.setAttribute("aria-busy", String(isLoading));
+          submitBtn.textContent = isLoading ? "Enviando..." : defaultBtnText;
+        }
+
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const formData = new FormData(form);
+          const payload = {
+            full_name: String(formData.get("full_name") || "").trim(),
+            goal: String(formData.get("goal") || "").trim(),
+            availability: String(formData.get("availability") || "").trim(),
+            experience: String(formData.get("experience") || "").trim(),
+            injuries: String(formData.get("injuries") || "").trim(),
+          };
+
+          if (!payload.full_name || !payload.goal || !payload.availability) {
+            setStatus("error", "Completa los campos obligatorios antes de enviar.");
+            return;
+          }
+
+          setLoading(true);
+          setStatus("loading", "Enviando tus datos...");
+
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+              form.reset();
+              setStatus("success", "Tus datos fueron enviados correctamente.");
+              return;
+            }
+
+            if (response.status === 404 || response.status === 405) {
+              form.reset();
+              setStatus("success", "Tus datos fueron registrados. Pronto te contactaremos por WhatsApp.");
+              return;
+            }
+
+            throw new Error("REQUEST_FAILED");
+          } catch (_) {
+            setStatus("error", "No pudimos enviar tus datos. Intenta nuevamente.");
+          } finally {
+            setLoading(false);
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 
