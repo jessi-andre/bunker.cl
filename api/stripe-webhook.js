@@ -1,5 +1,11 @@
 const bcrypt = require("bcryptjs");
-const { json, getStripe, getSupabaseAdmin, normalizeHost } = require("../lib/_lib");
+const {
+  json,
+  getStripe,
+  getSupabaseAdmin,
+  normalizeHost,
+  normalizePlanFromPriceId,
+} = require("../lib/_lib");
 
 const AUTO_ONBOARDING_PASSWORD_HASH = bcrypt.hashSync("modu:auto-onboarding:disabled-login", 10);
 
@@ -223,6 +229,84 @@ const updateCompany = async (supabase, companyId, patch) => {
   if (error) throw new Error(error.message || "Failed to update company");
 };
 
+const resolvePlan = ({ explicitPlan, priceId }) => {
+  const fromMetadata = normalizeText(explicitPlan, 32).toLowerCase();
+  if (["starter", "pro", "elite"].includes(fromMetadata)) {
+    return fromMetadata;
+  }
+
+  if (priceId) {
+    const fromPrice = normalizePlanFromPriceId(priceId);
+    if (["starter", "pro", "elite"].includes(fromPrice)) {
+      return fromPrice;
+    }
+  }
+
+  return null;
+};
+
+const syncAlumnoFromStripe = async (
+  supabase,
+  { companyId, email, customerId, subscriptionId, status = "active", plan }
+) => {
+  if (!companyId) return;
+
+  const normalizedEmail = normalizeEmail(email);
+  const payload = {
+    company_id: companyId,
+    status,
+    plan: plan || null,
+    stripeCustomerId: customerId || null,
+    stripeSubscriptionId: subscriptionId || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Primary match: same tenant + email created during checkout.
+  if (normalizedEmail) {
+    const { data: updatedRows, error: updateByEmailError } = await supabase
+      .from("alumnos")
+      .update(payload)
+      .eq("company_id", companyId)
+      .eq("email", normalizedEmail)
+      .select("id")
+      .limit(1);
+
+    if (updateByEmailError) throw new Error(updateByEmailError.message || "Failed to update alumno by email");
+    if (Array.isArray(updatedRows) && updatedRows.length > 0) return;
+  }
+
+  // Secondary match: existing row already linked by Stripe customer.
+  if (customerId) {
+    const { data: updatedByCustomerRows, error: updateByCustomerError } = await supabase
+      .from("alumnos")
+      .update(payload)
+      .eq("company_id", companyId)
+      .eq("stripeCustomerId", customerId)
+      .select("id")
+      .limit(1);
+
+    if (updateByCustomerError) {
+      throw new Error(updateByCustomerError.message || "Failed to update alumno by customer");
+    }
+    if (Array.isArray(updatedByCustomerRows) && updatedByCustomerRows.length > 0) return;
+  }
+
+  // Last-resort upsert to keep onboarding/activation consistent.
+  if (normalizedEmail) {
+    const { error: upsertError } = await supabase.from("alumnos").upsert(
+      {
+        ...payload,
+        email: normalizedEmail,
+      },
+      { onConflict: "company_id,email" }
+    );
+
+    if (upsertError) {
+      throw new Error(upsertError.message || "Failed to upsert alumno from Stripe");
+    }
+  }
+};
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -282,6 +366,9 @@ module.exports = async function handler(req, res) {
         normalizeEmail(session?.metadata?.admin_email) ||
         normalizeEmail(session?.metadata?.email) ||
         normalizeEmail(session?.customer_details?.email);
+      const metadataPlan = normalizeText(session?.metadata?.plan, 32).toLowerCase();
+      const linePriceId = normalizeId(session?.line_items?.data?.[0]?.price?.id);
+      const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: linePriceId });
 
       const status = session.subscription_status
         ? String(session.subscription_status).toLowerCase()
@@ -316,6 +403,23 @@ module.exports = async function handler(req, res) {
       }
 
       await updateCompany(supabase, company.id, patch);
+      try {
+        await syncAlumnoFromStripe(supabase, {
+          companyId: company.id,
+          email: metadataAdminEmail,
+          customerId,
+          subscriptionId,
+          status: "active",
+          plan: resolvedPlan,
+        });
+      } catch (alumnoErr) {
+        console.warn("stripe-webhook: failed to sync alumno", {
+          event_type: event.type,
+          company_id: company.id,
+          email: metadataAdminEmail,
+          error: alumnoErr?.message || String(alumnoErr),
+        });
+      }
       try {
         await ensureCompanyAdmin(supabase, {
           companyId: company.id,
@@ -396,7 +500,11 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { received: true });
     }
 
-    if (event.type === "invoice.payment_succeeded" || event.type === "invoice.payment_failed") {
+    if (
+      event.type === "invoice.payment_succeeded" ||
+      event.type === "invoice.paid" ||
+      event.type === "invoice.payment_failed"
+    ) {
       const invoice = event.data.object;
       const customerId = normalizeId(invoice.customer);
       const subscriptionId = normalizeId(invoice.subscription);
@@ -405,6 +513,11 @@ module.exports = async function handler(req, res) {
       const metadataCompanyName = normalizeText(invoice?.metadata?.company_name, 120);
       const metadataAdminEmail =
         normalizeEmail(invoice?.metadata?.admin_email) || normalizeEmail(invoice?.metadata?.email);
+      const metadataPlan = normalizeText(invoice?.metadata?.plan, 32).toLowerCase();
+      const invoicePriceId = normalizeId(invoice?.lines?.data?.[0]?.price?.id);
+      const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: invoicePriceId });
+      const isSuccessfulInvoice =
+        event.type === "invoice.payment_succeeded" || event.type === "invoice.paid";
 
       const company = await ensureCompany(supabase, {
         customerId,
@@ -412,7 +525,7 @@ module.exports = async function handler(req, res) {
         subscriptionId,
         companyDomain: metadataCompanyDomain,
         companyName: metadataCompanyName,
-        subscriptionStatus: event.type === "invoice.payment_succeeded" ? "active" : "past_due",
+        subscriptionStatus: isSuccessfulInvoice ? "active" : "past_due",
       });
       if (!company?.id) {
         console.warn("stripe-webhook: company not found for customer", {
@@ -427,7 +540,7 @@ module.exports = async function handler(req, res) {
 
       const patch = {
         stripe_customer_id: customerId,
-        subscription_status: event.type === "invoice.payment_succeeded" ? "active" : "past_due",
+        subscription_status: isSuccessfulInvoice ? "active" : "past_due",
       };
 
       if (subscriptionId) {
@@ -435,6 +548,25 @@ module.exports = async function handler(req, res) {
       }
 
       await updateCompany(supabase, company.id, patch);
+      if (isSuccessfulInvoice) {
+        try {
+          await syncAlumnoFromStripe(supabase, {
+            companyId: company.id,
+            email: metadataAdminEmail,
+            customerId,
+            subscriptionId,
+            status: "active",
+            plan: resolvedPlan,
+          });
+        } catch (alumnoErr) {
+          console.warn("stripe-webhook: failed to sync alumno", {
+            event_type: event.type,
+            company_id: company.id,
+            email: metadataAdminEmail,
+            error: alumnoErr?.message || String(alumnoErr),
+          });
+        }
+      }
       try {
         await ensureCompanyAdmin(supabase, {
           companyId: company.id,
