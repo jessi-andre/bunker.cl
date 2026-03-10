@@ -69,7 +69,7 @@ module.exports = async function handler(req, res) {
       if (req.method === "GET") {
         const { data, error } = await supabase
           .from("alumnos")
-          .select("onboarding_completed")
+          .select("id, onboarding_completed, onboarding_completed_at")
           .eq("company_id", auth.company_id)
           .eq("email", adminEmail)
           .maybeSingle();
@@ -85,7 +85,9 @@ module.exports = async function handler(req, res) {
         }
 
         return send(200, {
+          has_alumno: Boolean(data?.id),
           onboarding_completed: Boolean(data?.onboarding_completed),
+          onboarding_completed_at: data?.onboarding_completed_at || null,
         }, { stage: "get_ok" });
       }
 

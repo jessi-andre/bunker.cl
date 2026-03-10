@@ -360,8 +360,9 @@
         const statusEl = document.getElementById("submit-status");
         if (!form || !submitBtn || !statusEl) return;
 
+        const pageParams = new URLSearchParams(window.location.search);
         const endpoint = form.getAttribute("action") || "/api/save-onboarding";
-        const finalRedirectUrl = "/gracias.html?onboarding=ok";
+        const finalRedirectUrl = "/datos-iniciales.html?saved=1";
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
         let isSubmitting = false;
@@ -396,6 +397,11 @@
         }
 
         async function checkExistingOnboarding() {
+          if (pageParams.get("saved") === "1") {
+            setStatus("success", "Tus datos iniciales ya fueron guardados correctamente.");
+            return;
+          }
+
           try {
             const response = await fetch(endpoint, {
               method: "GET",
@@ -409,12 +415,15 @@
 
             if (!response.ok) return;
             const data = await response.json().catch(() => ({}));
-            if (data?.onboarding_completed === true) {
+            if (data?.has_alumno === true && data?.onboarding_completed === true) {
               setStatus(
                 "success",
                 "Ya habías completado este paso. Puedes revisar o volver a enviar tus datos si estás probando esta pantalla."
               );
+              return;
             }
+
+            setStatus("", "");
           } catch (_) {}
         }
 
