@@ -112,7 +112,7 @@ const loadDashboard = async () => {
           <tr>
             <td class="name-cell">
               <strong>${fullName}</strong>
-              <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en onboarding"}</span>
+              <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en datos iniciales"}</span>
             </td>
             <td>${alumno?.email || "-"}</td>
             <td><span class="${getStatusClass(alumno?.status)}">${statusLabel}</span></td>
