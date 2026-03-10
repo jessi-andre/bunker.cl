@@ -71,24 +71,6 @@
         align-items: flex-start;
       }
 
-      .dashboard-account-link {
-        display: inline-flex;
-        align-items: center;
-        padding: 0;
-        border: 0;
-        background: transparent;
-        cursor: pointer;
-        color: rgba(255, 255, 255, 0.72);
-        font-size: 0.92rem;
-        text-decoration: none;
-        transition: color 160ms ease;
-      }
-
-      .dashboard-account-link:hover,
-      .dashboard-account-link:focus-visible {
-        color: var(--dashboard-accent);
-      }
-
       .summary-grid {
         display: grid;
         gap: var(--space-3);
@@ -277,13 +259,12 @@
               <p class="eyebrow">Admin</p>
               <h1>Panel MODU</h1>
               <p class="dashboard-subtitle">
-                Revisa tus alumnas, su avance y quienes todavia tienen pasos pendientes.
+                Base de datos de alumnos de tu gimnasio.
               </p>
               <p class="dashboard-meta" id="session-info">Cargando panel...</p>
             </div>
             <div class="dashboard-actions">
               <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesi&oacute;n</button>
-              <button id="billing-btn" type="button" class="dashboard-account-link">Ver plan MODU</button>
             </div>
           </div>
         </section>
@@ -306,12 +287,12 @@
         <section class="dashboard-panel" aria-label="Lista de alumnos">
           <div class="dashboard-panel-head">
             <h2>Alumnos</h2>
-            <p>Estado actual y avance de datos iniciales de tus alumnas.</p>
+            <p>Estado actual y avance de datos iniciales de tus alumnos.</p>
           </div>
 
           <p id="dashboard-loading" class="dashboard-loading">Cargando alumnos...</p>
           <p id="dashboard-error" class="dashboard-error" hidden></p>
-          <p id="dashboard-empty" class="dashboard-empty" hidden>Aun no hay alumnas cargadas.</p>
+          <p id="dashboard-empty" class="dashboard-empty" hidden>Aun no hay alumnos cargados.</p>
 
           <div class="dashboard-table-wrap" id="dashboard-table-wrap" hidden>
             <table class="dashboard-table">

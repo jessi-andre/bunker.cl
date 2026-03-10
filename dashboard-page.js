@@ -86,7 +86,7 @@ const loadDashboard = async () => {
 
     adminEmail = String(data?.admin_email || "").trim().toLowerCase() || null;
 
-    $("session-info").textContent = adminEmail ? "Panel listo para gestionar tu gimnasio." : "Panel listo";
+    $("session-info").textContent = "Acceso central a la base de datos de alumnos.";
 
     $("count-total").textContent = String(data?.counts?.total ?? 0);
     $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
@@ -133,52 +133,6 @@ const loadDashboard = async () => {
   }
 };
 
-const openBillingPortal = async (event) => {
-  event?.preventDefault();
-  const billingBtn = $("billing-btn");
-  const originalText = billingBtn?.textContent || "Ver plan MODU";
-
-  if (!adminEmail) {
-    $("dashboard-error").textContent = "No pudimos abrir tu plan MODU en este momento.";
-    $("dashboard-error").hidden = false;
-    return;
-  }
-
-  try {
-    $("dashboard-error").hidden = true;
-    if (billingBtn) {
-      billingBtn.disabled = true;
-      billingBtn.textContent = "Abriendo...";
-    }
-
-    const response = await fetch("/api/create-portal-session", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: adminEmail }),
-    });
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok || !data?.url) {
-      throw new Error(data?.error || "No se pudo abrir tu plan MODU");
-    }
-
-    const newWindow = window.open(data.url, "_blank", "noopener,noreferrer");
-    if (!newWindow) {
-      window.location.href = data.url;
-    }
-  } catch (error) {
-    $("dashboard-error").textContent = error?.message || "No se pudo abrir tu plan MODU";
-    $("dashboard-error").hidden = false;
-    if (billingBtn) {
-      billingBtn.disabled = false;
-      billingBtn.textContent = originalText;
-    }
-  }
-};
-
 const logout = async () => {
   try {
     if (!csrfToken) {
@@ -199,7 +153,6 @@ const logout = async () => {
   window.location.href = "/login.html";
 };
 
-$("billing-btn")?.addEventListener("click", openBillingPortal);
 $("logout-btn")?.addEventListener("click", logout);
 window.addEventListener("pageshow", () => {
   loadDashboard();
