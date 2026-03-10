@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Coordinar evaluación | MODU</title>
+    <title>Coordinar evaluacion | MODU</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -143,7 +143,7 @@
     <main class="card">
       <span class="eyebrow">Siguiente paso</span>
       <h1>Perfecto, ya tenemos tus datos</h1>
-      <p>Ahora coordinemos tu evaluación inicial y tu primer entrenamiento.</p>
+      <p>Ahora coordinemos tu evaluacion inicial y tu primer entrenamiento.</p>
       <div class="actions">
         <a
           href="https://wa.me/56912345678"
@@ -168,10 +168,30 @@
         const message = [
           "Hola! Me acabo de inscribir en MODU.",
           `Mi email es: ${email || "[EMAIL]"}`,
-          "Ya completé mis datos iniciales y quiero coordinar mi evaluación inicial.",
+          "Ya complete mis datos iniciales y quiero coordinar mi evaluacion inicial.",
         ].join("\n");
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
-        whatsappLink.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        whatsappLink.href = whatsappUrl;
+
+        whatsappLink.addEventListener("click", async function (event) {
+          event.preventDefault();
+
+          try {
+            if (email) {
+              await fetch("/api/track-whatsapp", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+                keepalive: true,
+              });
+            }
+          } catch (_) {}
+
+          window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        });
       })();
     </script>
   </body>

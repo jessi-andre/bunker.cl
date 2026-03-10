@@ -7,6 +7,7 @@ create table if not exists public.alumnos (
   "stripeSubscriptionId" text,
   status text,
   plan text,
+  whatsapp_clicked_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
