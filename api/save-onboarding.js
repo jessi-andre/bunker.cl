@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
     console.log("save-onboarding: response", {
       status,
       ...logMeta,
-      error: payload?.error || null,
+      payload,
     });
     return json(res, status, payload);
   };
@@ -69,14 +69,18 @@ module.exports = async function handler(req, res) {
       if (req.method === "GET") {
         const { data, error } = await supabase
           .from("alumnos")
-          .select("id, onboarding_completed, onboarding_completed_at")
+          .select("id, email, status, onboarding_completed, onboarding_completed_at")
           .eq("company_id", auth.company_id)
           .eq("email", adminEmail)
           .maybeSingle();
 
         console.log("save-onboarding: alumno lookup result", {
           ...alumnoIdentifier,
-          result: data || null,
+          found_alumno: Boolean(data?.id),
+          alumno_status: data?.status || null,
+          onboarding_completed: data?.onboarding_completed ?? null,
+          onboarding_completed_at: data?.onboarding_completed_at || null,
+          email_from_db: data?.email || null,
           error: error?.message || null,
         });
 
@@ -86,6 +90,8 @@ module.exports = async function handler(req, res) {
 
         return send(200, {
           has_alumno: Boolean(data?.id),
+          email: data?.email || adminEmail,
+          status: data?.status || null,
           onboarding_completed: Boolean(data?.onboarding_completed),
           onboarding_completed_at: data?.onboarding_completed_at || null,
         }, { stage: "get_ok" });
@@ -132,14 +138,18 @@ module.exports = async function handler(req, res) {
 
       const { data: existingAlumno, error: existingAlumnoError } = await supabase
         .from("alumnos")
-        .select("id")
+        .select("id, email, status, onboarding_completed, onboarding_completed_at")
         .eq("company_id", auth.company_id)
         .eq("email", adminEmail)
         .maybeSingle();
 
       console.log("save-onboarding: alumno lookup result", {
         ...alumnoIdentifier,
-        result: existingAlumno || null,
+        found_alumno: Boolean(existingAlumno?.id),
+        alumno_status: existingAlumno?.status || null,
+        onboarding_completed: existingAlumno?.onboarding_completed ?? null,
+        onboarding_completed_at: existingAlumno?.onboarding_completed_at || null,
+        email_from_db: existingAlumno?.email || null,
         error: existingAlumnoError?.message || null,
       });
 
@@ -176,7 +186,14 @@ module.exports = async function handler(req, res) {
       }
 
       console.log("save-onboarding: save ok", alumnoIdentifier);
-      return send(200, { ok: true }, { stage: "save_ok" });
+      return send(200, {
+        ok: true,
+        email: adminEmail,
+        has_alumno: true,
+        status: existingAlumno?.status || null,
+        onboarding_completed: true,
+        onboarding_completed_at: nowIso,
+      }, { stage: "save_ok", redirect_instruction: null });
     } catch (err) {
       const status = Number(err?.status) === 401 ? 401 : 500;
       console.log("save-onboarding: js/auth error", {

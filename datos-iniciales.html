@@ -266,6 +266,10 @@
       .submit-status[data-state="success"] { color: var(--accent-strong); }
       .submit-status[data-state="error"] { color: #c94c4c; }
 
+      .continue-link[hidden] {
+        display: none;
+      }
+
       @media (min-width: 768px) {
         .page-shell {
           padding: 1.5rem 0 4rem;
@@ -342,6 +346,7 @@
 
             <div class="actions">
               <button type="submit" class="btn btn-primary" id="submit-initial-data">Enviar datos iniciales</button>
+              <a href="gracias.html" class="btn btn-ghost continue-link" id="continue-after-onboarding" hidden>Continuar</a>
               <a href="gracias.html" class="btn btn-ghost">Volver</a>
             </div>
             <p class="submit-status" id="submit-status" aria-live="polite"></p>
@@ -358,15 +363,18 @@
         const form = document.getElementById("initial-data-form");
         const submitBtn = document.getElementById("submit-initial-data");
         const statusEl = document.getElementById("submit-status");
-        if (!form || !submitBtn || !statusEl) return;
+        const continueBtn = document.getElementById("continue-after-onboarding");
+        if (!form || !submitBtn || !statusEl || !continueBtn) return;
 
         const pageParams = new URLSearchParams(window.location.search);
         const endpoint = form.getAttribute("action") || "/api/save-onboarding";
-        const finalRedirectUrl = "/datos-iniciales.html?saved=1";
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
         let isSubmitting = false;
-        let isRedirecting = false;
+
+        function logDebug(label, payload) {
+          console.log("datos-iniciales:", label, payload);
+        }
 
         function setStatus(state, message) {
           statusEl.setAttribute("data-state", state);
@@ -398,7 +406,11 @@
 
         async function checkExistingOnboarding() {
           if (pageParams.get("saved") === "1") {
-            setStatus("success", "Tus datos iniciales ya fueron guardados correctamente.");
+            logDebug("saved_param_detected", {
+              saved_param: pageParams.get("saved"),
+            });
+            setStatus("success", "Datos guardados correctamente");
+            continueBtn.hidden = false;
             return;
           }
 
@@ -415,15 +427,28 @@
 
             if (!response.ok) return;
             const data = await response.json().catch(() => ({}));
+            logDebug("initial_state_response", {
+              email_detected: data?.email || null,
+              has_alumno: data?.has_alumno,
+              onboarding_completed: data?.onboarding_completed,
+              onboarding_completed_at: data?.onboarding_completed_at || null,
+              status: data?.status || null,
+              should_show_completed_message:
+                data?.has_alumno === true && data?.onboarding_completed === true,
+              auto_redirect_disabled: true,
+            });
             if (data?.has_alumno === true && data?.onboarding_completed === true) {
               setStatus(
                 "success",
                 "Ya habías completado este paso. Puedes revisar o volver a enviar tus datos si estás probando esta pantalla."
               );
-              return;
+              continueBtn.hidden = false;
             }
 
-            setStatus("", "");
+            if (!(data?.has_alumno === true && data?.onboarding_completed === true)) {
+              setStatus("", "");
+              continueBtn.hidden = true;
+            }
           } catch (_) {}
         }
 
@@ -463,16 +488,25 @@
               body: JSON.stringify(payload),
             });
 
+            const data = await response.json().catch(() => ({}));
+            logDebug("submit_response", {
+              email_detected: data?.email || null,
+              has_alumno: data?.has_alumno,
+              onboarding_completed: data?.onboarding_completed,
+              onboarding_completed_at: data?.onboarding_completed_at || null,
+              status: data?.status || null,
+              response_ok: response.ok,
+              response_status: response.status,
+              response_step: data?.step || null,
+              redirect_target: null,
+              auto_redirect_disabled: true,
+            });
+
             if (response.ok) {
-              isRedirecting = true;
-              setStatus("success", "Tus datos fueron enviados correctamente. Te estamos redirigiendo...");
-              window.setTimeout(() => {
-                window.location.href = finalRedirectUrl;
-              }, 650);
+              setStatus("success", "Datos guardados correctamente");
+              continueBtn.hidden = false;
               return;
             }
-
-            const data = await response.json().catch(() => ({}));
 
             if (response.status === 401) {
               setStatus("error", "Tu sesión expiró. Inicia sesión para continuar.");
@@ -492,10 +526,8 @@
           } catch (_) {
             setStatus("error", "No pudimos enviar tus datos. Intenta nuevamente.");
           } finally {
-            if (!isRedirecting) {
-              isSubmitting = false;
-              setLoading(false);
-            }
+            isSubmitting = false;
+            setLoading(false);
           }
         });
       })();
