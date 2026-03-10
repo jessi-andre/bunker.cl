@@ -10,150 +10,311 @@
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       :root {
-        --accent: #a8ff3e;
-        --bg: #0a0a0a;
-        --surface: #111111;
-        --border: #1f1f1f;
-        --text: #ffffff;
-        --muted: #9ca3af;
+        --bg: #f3f5f4;
+        --surface: #ffffff;
+        --surface-2: #ecefef;
+        --text: #1b2127;
+        --muted: #59636e;
+        --border: #cfd6dc;
+        --accent: #9ac756;
+        --accent-strong: #86b043;
+        --accent-soft: rgba(154, 199, 86, 0.12);
+        --accent-contrast: #f6f8f5;
+        --bg-glow: #eaeeee;
+        --shadow: 0 10px 24px rgba(22, 30, 36, 0.12);
+        --radius-sm: 0.75rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.4rem;
       }
 
       body {
         min-height: 100dvh;
-        background: var(--bg);
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: radial-gradient(circle at 20% -10%, var(--bg-glow) 0%, var(--bg) 55%);
         color: var(--text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-        padding: 1.25rem;
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page-shell {
+        min-height: 100dvh;
+        padding: 1.25rem 0 2.5rem;
+      }
+
+      .topbar {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .brand {
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .brand-dot {
+        color: var(--accent);
+      }
+
+      .topbar-link {
+        font-size: 0.95rem;
+        color: var(--muted);
+        transition: color 0.2s ease;
+      }
+
+      .topbar-link:hover {
+        color: var(--text);
       }
 
       .wrap {
-        max-width: 760px;
+        width: min(1100px, calc(100% - 32px));
         margin: 0 auto;
       }
 
-      .card {
-        margin-top: 1rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 1.25rem;
-        padding: 1.25rem;
+      .hero-card {
+        display: grid;
+        gap: 1.5rem;
+        background: linear-gradient(135deg, rgba(154, 199, 86, 0.12), rgba(255, 255, 255, 0.92));
+        border: 1px solid rgba(154, 199, 86, 0.2);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+      }
+
+      .eyebrow {
+        display: inline-block;
+        color: var(--accent-strong);
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
       }
 
       h1 {
-        font-size: clamp(1.4rem, 5vw, 2rem);
-        line-height: 1.2;
+        font-size: clamp(1.9rem, 5vw, 3.25rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.75rem;
+      }
+
+      .lead {
+        font-size: clamp(1rem, 0.95rem + 0.35vw, 1.12rem);
+        color: var(--muted);
+        max-width: 58ch;
+      }
+
+      .hero-points {
+        display: grid;
+        gap: 0.75rem;
+        padding-top: 0.25rem;
+      }
+
+      .hero-points p {
+        color: var(--text);
+        font-size: 0.96rem;
+        font-weight: 600;
+        border-left: 2px solid var(--accent);
+        padding-left: 0.75rem;
+      }
+
+      .card {
+        margin-top: 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+      }
+
+      .section-title {
+        font-size: clamp(1.35rem, 3vw, 1.85rem);
+        line-height: 1.12;
         letter-spacing: -0.02em;
         margin-bottom: 0.5rem;
       }
 
-      .lead {
+      .section-copy {
         color: var(--muted);
-        line-height: 1.55;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
       }
 
       form {
         display: grid;
-        gap: 0.9rem;
+        gap: 1rem;
       }
 
       .field {
         display: flex;
         flex-direction: column;
-        gap: 0.45rem;
+        gap: 0.5rem;
       }
 
       label {
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text);
       }
 
       input,
-      textarea,
-      select {
+      textarea {
         width: 100%;
-        border: 1px solid #2a2a2a;
-        background: #0c0c0c;
+        border: 1px solid var(--border);
+        background: var(--surface);
         color: var(--text);
-        border-radius: 0.75rem;
-        padding: 0.75rem 0.85rem;
-        font-size: 0.95rem;
+        border-radius: var(--radius-md);
+        padding: 0.9rem 1rem;
+        font-size: 0.98rem;
+        transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       }
 
       textarea {
-        min-height: 108px;
+        min-height: 120px;
         resize: vertical;
       }
 
+      input::placeholder,
+      textarea::placeholder {
+        color: #7a8591;
+      }
+
       input:focus,
-      textarea:focus,
-      select:focus {
+      textarea:focus {
         outline: none;
-        border-color: rgba(168, 255, 62, 0.8);
-        box-shadow: 0 0 0 2px rgba(168, 255, 62, 0.16);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
       }
 
       .actions {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        margin-top: 0.25rem;
+        margin-top: 0.5rem;
       }
 
       .btn {
-        border: none;
-        border-radius: 0.75rem;
-        padding: 0.85rem 1rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 0.9rem 1.15rem;
+        min-height: 48px;
         font-weight: 700;
-        font-size: 0.95rem;
+        font-size: 0.97rem;
         text-align: center;
-        text-decoration: none;
         cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn:hover,
+      .btn:focus-visible {
+        transform: translateY(-1px);
       }
 
       .btn-primary {
         background: var(--accent);
-        color: #0a0a0a;
+        color: #172111;
+        border-color: var(--accent);
+      }
+
+      .btn-primary:hover,
+      .btn-primary:focus-visible {
+        background: var(--accent-strong);
+        border-color: var(--accent-strong);
+        color: #0f140f;
       }
 
       .btn-ghost {
         background: transparent;
-        border: 1px solid var(--border);
-        color: #d1d5db;
+        border-color: #3a4652;
+        color: var(--text);
+      }
+
+      .btn-ghost:hover,
+      .btn-ghost:focus-visible {
+        background: rgba(27, 33, 39, 0.06);
+        border-color: #2f3a45;
       }
 
       .note {
         color: var(--muted);
-        font-size: 0.84rem;
-        line-height: 1.45;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.9rem 1rem;
       }
 
       .submit-status {
-        min-height: 1.2rem;
-        font-size: 0.88rem;
+        min-height: 1.3rem;
+        font-size: 0.92rem;
+        font-weight: 600;
       }
 
-      .submit-status[data-state="loading"] { color: #d1d5db; }
-      .submit-status[data-state="success"] { color: var(--accent); }
-      .submit-status[data-state="error"] { color: #f87171; }
+      .submit-status[data-state="loading"] { color: var(--muted); }
+      .submit-status[data-state="success"] { color: var(--accent-strong); }
+      .submit-status[data-state="error"] { color: #c94c4c; }
 
-      @media (min-width: 640px) {
-        body { padding: 2rem; }
-        .card { padding: 1.75rem; }
-        .actions { flex-direction: row; }
-        .actions .btn { flex: 1; }
+      @media (min-width: 768px) {
+        .page-shell {
+          padding: 1.5rem 0 4rem;
+        }
+
+        .hero-card,
+        .card {
+          padding: 2rem;
+        }
+
+        .actions {
+          flex-direction: row;
+        }
+
+        .actions .btn {
+          flex: 1;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="wrap">
-      <section class="card">
-        <h1>Completa tus datos iniciales</h1>
-        <p class="lead">
-          Esta informaci&#243;n nos ayuda a preparar tu evaluaci&#243;n inicial y a dise&#241;ar un plan acorde a tus objetivos.
-        </p>
+    <div class="page-shell">
+      <header class="topbar">
+        <a href="/" class="brand" aria-label="MODU inicio">MODU<span class="brand-dot">.</span></a>
+        <a href="gracias.html" class="topbar-link">Volver</a>
+      </header>
+      <main class="wrap">
+        <section class="hero-card">
+          <div>
+            <span class="eyebrow">Onboarding inicial</span>
+            <h1>Completa tus datos para empezar con tu plan en MODU.</h1>
+            <p class="lead">
+              Esta información nos ayuda a preparar tu evaluación inicial y a diseñar un plan alineado con tus objetivos, horarios y contexto físico.
+            </p>
+          </div>
+          <div class="hero-points">
+            <p>Te toma menos de 2 minutos.</p>
+            <p>Nos permite personalizar tu inicio desde la primera sesión.</p>
+            <p>Queda guardado dentro de tu mismo flujo en MODU.</p>
+          </div>
+        </section>
 
-        <form id="initial-data-form" method="post" action="/api/save-onboarding">
+        <section class="card">
+          <h2 class="section-title">Datos iniciales del alumno</h2>
+          <p class="section-copy">
+            Completa la información principal para que el equipo prepare tu proceso de onboarding sin pasos extra.
+          </p>
+
+          <form id="initial-data-form" method="post" action="/api/save-onboarding">
           <div class="field">
             <label for="full-name">Nombre completo</label>
             <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="Ej: Mar&#237;a P&#233;rez" required />
@@ -179,18 +340,19 @@
             <textarea id="injuries" name="injuries" placeholder="Ej: Lesi&#243;n de rodilla, dolor lumbar, restricciones m&#233;dicas"></textarea>
           </div>
 
-          <div class="actions">
-            <button type="submit" class="btn btn-primary" id="submit-initial-data">Enviar datos iniciales</button>
-            <a href="gracias.html" class="btn btn-ghost">Volver</a>
-          </div>
-          <p class="submit-status" id="submit-status" aria-live="polite"></p>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="submit-initial-data">Enviar datos iniciales</button>
+              <a href="gracias.html" class="btn btn-ghost">Volver</a>
+            </div>
+            <p class="submit-status" id="submit-status" aria-live="polite"></p>
 
-          <p class="note">
-            Esta informaci&#243;n queda guardada para tu proceso inicial y nos ayuda a preparar tu plan personalizado.
-          </p>
-        </form>
-      </section>
-    </main>
+            <p class="note">
+              Esta información queda asociada a tu proceso inicial y se usa para preparar una experiencia más personalizada desde el primer contacto.
+            </p>
+          </form>
+        </section>
+      </main>
+    </div>
     <script>
       (function () {
         const form = document.getElementById("initial-data-form");
