@@ -266,10 +266,6 @@
       .submit-status[data-state="success"] { color: var(--accent-strong); }
       .submit-status[data-state="error"] { color: #c94c4c; }
 
-      .continue-link[hidden] {
-        display: none;
-      }
-
       @media (min-width: 768px) {
         .page-shell {
           padding: 1.5rem 0 4rem;
@@ -346,7 +342,6 @@
 
             <div class="actions">
               <button type="submit" class="btn btn-primary" id="submit-initial-data">Enviar datos iniciales</button>
-              <a href="gracias.html" class="btn btn-ghost continue-link" id="continue-after-onboarding" hidden>Continuar</a>
               <a href="gracias.html" class="btn btn-ghost">Volver</a>
             </div>
             <p class="submit-status" id="submit-status" aria-live="polite"></p>
@@ -363,19 +358,21 @@
         const form = document.getElementById("initial-data-form");
         const submitBtn = document.getElementById("submit-initial-data");
         const statusEl = document.getElementById("submit-status");
-        const continueBtn = document.getElementById("continue-after-onboarding");
-        if (!form || !submitBtn || !statusEl || !continueBtn) return;
+        if (!form || !submitBtn || !statusEl) return;
 
         const pageParams = new URLSearchParams(window.location.search);
         const endpoint = form.getAttribute("action") || "/api/save-onboarding";
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
         let isSubmitting = false;
+        let isRedirecting = false;
         const onboardingEmail =
           String(pageParams.get("email") || pageParams.get("onboarding_email") || "").trim().toLowerCase();
         const endpointUrl = new URL(endpoint, window.location.origin);
+        const finalRedirectUrl = new URL("/coordinar.html", window.location.origin);
         if (onboardingEmail) {
           endpointUrl.searchParams.set("email", onboardingEmail);
+          finalRedirectUrl.searchParams.set("email", onboardingEmail);
         }
 
         function logDebug(label, payload) {
@@ -411,23 +408,12 @@
         }
 
         async function checkExistingOnboarding() {
-          if (pageParams.get("saved") === "1") {
-            logDebug("saved_param_detected", {
-              saved_param: pageParams.get("saved"),
-              email_detected: onboardingEmail || null,
-            });
-            setStatus("success", "Datos guardados correctamente");
-            continueBtn.hidden = false;
-            return;
-          }
-
           if (!onboardingEmail) {
             logDebug("missing_onboarding_email", {
               email_detected: null,
               auto_redirect_disabled: true,
             });
             setStatus("error", "No pudimos identificar el email del onboarding.");
-            continueBtn.hidden = true;
             return;
           }
 
@@ -460,12 +446,10 @@
                 "success",
                 "Ya habías completado este paso. Puedes revisar o volver a enviar tus datos si estás probando esta pantalla."
               );
-              continueBtn.hidden = false;
             }
 
             if (!(data?.has_alumno === true && data?.onboarding_completed === true)) {
               setStatus("", "");
-              continueBtn.hidden = true;
             }
           } catch (_) {}
         }
@@ -528,8 +512,11 @@
             });
 
             if (response.ok) {
+              isRedirecting = true;
               setStatus("success", "Datos guardados correctamente");
-              continueBtn.hidden = false;
+              window.setTimeout(() => {
+                window.location.href = finalRedirectUrl.toString();
+              }, 500);
               return;
             }
 
@@ -551,8 +538,10 @@
           } catch (_) {
             setStatus("error", "No pudimos enviar tus datos. Intenta nuevamente.");
           } finally {
-            isSubmitting = false;
-            setLoading(false);
+            if (!isRedirecting) {
+              isSubmitting = false;
+              setLoading(false);
+            }
           }
         });
       })();
