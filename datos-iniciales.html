@@ -201,6 +201,7 @@
         const endpoint = form.getAttribute("action") || "/api/save-onboarding";
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
+        let isSubmitting = false;
 
         function setStatus(state, message) {
           statusEl.setAttribute("data-state", state);
@@ -238,7 +239,7 @@
             });
 
             if (response.status === 401) {
-              setStatus("error", "Inicia sesi&#243;n para completar tus datos iniciales.");
+              setStatus("error", "Inicia sesión para completar tus datos iniciales.");
               return;
             }
 
@@ -254,6 +255,7 @@
 
         form.addEventListener("submit", async function (event) {
           event.preventDefault();
+          if (isSubmitting) return;
 
           const formData = new FormData(form);
           const payload = {
@@ -269,6 +271,7 @@
             return;
           }
 
+          isSubmitting = true;
           setLoading(true);
           setStatus("loading", "Enviando tus datos...");
 
@@ -285,7 +288,6 @@
             });
 
             if (response.ok) {
-              form.reset();
               setStatus("success", "Tus datos fueron enviados correctamente. Te estamos redirigiendo...");
               window.setTimeout(() => {
                 window.location.href = "/gestionar.html";
@@ -293,26 +295,30 @@
               return;
             }
 
-            if (response.status === 401) {
-              setStatus("error", "Tu sesi&#243;n expir&#243;. Inicia sesi&#243;n para continuar.");
-              return;
-            }
+            const data = await response.json().catch(() => ({}));
 
-            if (response.status === 403) {
-              setStatus("error", "No pudimos validar tu sesi&#243;n. Recarga e intenta nuevamente.");
+            if (response.status === 401) {
+              setStatus("error", "Tu sesión expiró. Inicia sesión para continuar.");
               return;
             }
 
             if (response.status === 400) {
-              setStatus("error", "Completa los campos obligatorios antes de enviar.");
+              setStatus("error", "Revisa los datos e intenta nuevamente.");
               return;
+            }
+
+            if (data?.error) {
+              throw new Error(String(data.error));
             }
 
             throw new Error("REQUEST_FAILED");
           } catch (_) {
             setStatus("error", "No pudimos enviar tus datos. Intenta nuevamente.");
           } finally {
-            setLoading(false);
+            if (window.location.pathname !== "/gestionar.html") {
+              isSubmitting = false;
+              setLoading(false);
+            }
           }
         });
       })();
