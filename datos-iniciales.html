@@ -361,9 +361,11 @@
         if (!form || !submitBtn || !statusEl) return;
 
         const endpoint = form.getAttribute("action") || "/api/save-onboarding";
+        const finalRedirectUrl = "/gracias.html?onboarding=ok";
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
         let isSubmitting = false;
+        let isRedirecting = false;
 
         function setStatus(state, message) {
           statusEl.setAttribute("data-state", state);
@@ -453,9 +455,10 @@
             });
 
             if (response.ok) {
+              isRedirecting = true;
               setStatus("success", "Tus datos fueron enviados correctamente. Te estamos redirigiendo...");
               window.setTimeout(() => {
-                window.location.href = "/gestionar.html";
+                window.location.href = finalRedirectUrl;
               }, 650);
               return;
             }
@@ -480,7 +483,7 @@
           } catch (_) {
             setStatus("error", "No pudimos enviar tus datos. Intenta nuevamente.");
           } finally {
-            if (window.location.pathname !== "/gestionar.html") {
+            if (!isRedirecting) {
               isSubmitting = false;
               setLoading(false);
             }
