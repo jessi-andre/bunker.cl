@@ -68,6 +68,21 @@
         display: flex;
         flex-direction: column;
         gap: var(--space-2);
+        align-items: flex-start;
+      }
+
+      .dashboard-account-link {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.92rem;
+        text-decoration: none;
+        transition: color 160ms ease;
+      }
+
+      .dashboard-account-link:hover,
+      .dashboard-account-link:focus-visible {
+        color: var(--dashboard-accent);
       }
 
       .summary-grid {
@@ -240,8 +255,7 @@
         }
 
         .dashboard-actions {
-          flex-direction: row;
-          align-items: flex-start;
+          align-items: flex-end;
         }
 
         .summary-grid {
@@ -264,8 +278,8 @@
               <p class="dashboard-meta" id="session-info">Cargando panel...</p>
             </div>
             <div class="dashboard-actions">
-              <button id="billing-btn" type="button" class="btn btn-accent">Cuenta MODU</button>
-              <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesión</button>
+              <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesion</button>
+              <a id="billing-btn" href="#" class="dashboard-account-link">Administrar cuenta MODU</a>
             </div>
           </div>
         </section>
@@ -293,7 +307,7 @@
 
           <p id="dashboard-loading" class="dashboard-loading">Cargando alumnos...</p>
           <p id="dashboard-error" class="dashboard-error" hidden></p>
-          <p id="dashboard-empty" class="dashboard-empty" hidden>No hay alumnos todavía.</p>
+          <p id="dashboard-empty" class="dashboard-empty" hidden>No hay alumnos todavia.</p>
 
           <div class="dashboard-table-wrap" id="dashboard-table-wrap" hidden>
             <table class="dashboard-table">
@@ -303,7 +317,6 @@
                   <th>Email</th>
                   <th>Estado</th>
                   <th>Onboarding</th>
-                  <th>Pago/Suscripción</th>
                   <th>Creado</th>
                 </tr>
               </thead>

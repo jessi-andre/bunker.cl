@@ -89,8 +89,7 @@ const loadDashboard = async () => {
           alumno?.onboarding_completed === true
             ? "onboarding-pill is-done"
             : "onboarding-pill is-waiting";
-        const paymentStatus = formatStatusLabel(alumno?.status);
-        const planLabel = String(alumno?.plan || "").trim() || "Sin plan";
+        const statusLabel = formatStatusLabel(alumno?.status);
 
         return `
           <tr>
@@ -99,12 +98,8 @@ const loadDashboard = async () => {
               <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en onboarding"}</span>
             </td>
             <td>${alumno?.email || "-"}</td>
-            <td><span class="${getStatusClass(alumno?.status)}">${paymentStatus}</span></td>
+            <td><span class="${getStatusClass(alumno?.status)}">${statusLabel}</span></td>
             <td><span class="${onboardingClass}">${onboardingText}</span></td>
-            <td class="name-cell">
-              <strong>${paymentStatus}</strong>
-              <span>${planLabel}</span>
-            </td>
             <td>${formatDate(alumno?.created_at)}</td>
           </tr>
         `;
@@ -119,9 +114,10 @@ const loadDashboard = async () => {
   }
 };
 
-const openBillingPortal = async () => {
+const openBillingPortal = async (event) => {
+  event?.preventDefault();
   const billingBtn = $("billing-btn");
-  const originalText = billingBtn?.textContent || "Facturacion";
+  const originalText = billingBtn?.textContent || "Administrar cuenta MODU";
 
   if (!adminEmail) {
     $("dashboard-error").textContent = "No se pudo identificar el email del admin para facturacion.";
