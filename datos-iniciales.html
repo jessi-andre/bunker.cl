@@ -408,7 +408,10 @@
             if (!response.ok) return;
             const data = await response.json().catch(() => ({}));
             if (data?.onboarding_completed === true) {
-              window.location.href = "/gestionar.html";
+              setStatus(
+                "success",
+                "Ya habías completado este paso. Puedes revisar o volver a enviar tus datos si estás probando esta pantalla."
+              );
             }
           } catch (_) {}
         }
