@@ -456,7 +456,12 @@ module.exports = async function handler(req, res) {
     });
 
     if (event.type === "checkout.session.completed") {
+      console.log("WEBHOOK EVENT:", event.type);
       const session = event.data.object;
+      console.log("SESSION EMAIL:", session?.customer_email || null);
+      console.log("SESSION CUSTOMER:", session?.customer || null);
+      console.log("SESSION SUBSCRIPTION:", session?.subscription || null);
+      console.log("SESSION METADATA:", session?.metadata || null);
       const customerId = normalizeId(session.customer);
       const subscriptionId = normalizeId(session.subscription);
       const metadataCompanyId = normalizeId(session?.metadata?.company_id);
@@ -473,7 +478,6 @@ module.exports = async function handler(req, res) {
       const metadataPlan = normalizeText(session?.metadata?.plan, 32).toLowerCase();
       const linePriceId = normalizeId(session?.line_items?.data?.[0]?.price?.id);
       const resolvedPlan = resolvePlan({ explicitPlan: metadataPlan, priceId: linePriceId });
-      console.log("WEBHOOK EVENT:", event.type);
       console.log("WEBHOOK COMPANY_ID:", metadataCompanyId);
       console.log("WEBHOOK PLAN:", resolvedPlan);
 
