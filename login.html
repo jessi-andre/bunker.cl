@@ -11,13 +11,24 @@
       <h1>Ingreso Admin</h1>
       <form id="loginForm">
         <input id="email" name="email" type="email" placeholder="Email" required />
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="Contraseña"
-          required
-        />
+        <div class="password-field">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Contrase&ntilde;a"
+            required
+          />
+          <button
+            id="togglePasswordBtn"
+            class="password-toggle"
+            type="button"
+            aria-label="Mostrar contrase&ntilde;a"
+            aria-pressed="false"
+          >
+            👁
+          </button>
+        </div>
         <button id="submitBtn" type="submit">Ingresar</button>
       </form>
       <div id="error" class="login-error" aria-live="polite"></div>
