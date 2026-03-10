@@ -439,13 +439,14 @@
               identified: data?.identified,
               should_show_completed_message:
                 data?.has_alumno === true && data?.onboarding_completed === true,
-              auto_redirect_disabled: true,
+              redirect_target:
+                data?.has_alumno === true && data?.onboarding_completed === true
+                  ? finalRedirectUrl.toString()
+                  : null,
             });
             if (data?.has_alumno === true && data?.onboarding_completed === true) {
-              setStatus(
-                "success",
-                "Ya habías completado este paso. Puedes revisar o volver a enviar tus datos si estás probando esta pantalla."
-              );
+              window.location.href = finalRedirectUrl.toString();
+              return;
             }
 
             if (!(data?.has_alumno === true && data?.onboarding_completed === true)) {
