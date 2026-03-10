@@ -407,6 +407,51 @@ const syncAlumnoFromStripe = async (
   throw new Error(upsertEmailError.message || "Failed to upsert alumno from Stripe");
 };
 
+const updateAlumnoByEmailFromCheckout = async (
+  supabase,
+  { eventId, email, customerId, subscriptionId }
+) => {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    throw new Error("ALUMNO_CHECKOUT_UPDATE_MISSING_EMAIL");
+  }
+
+  const payload = {
+    status: "active",
+    plan: "starter",
+    stripeCustomerId: customerId || null,
+    stripeSubscriptionId: subscriptionId || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: updatedRows, error } = await supabase
+    .from("alumnos")
+    .update(payload)
+    .eq("email", normalizedEmail)
+    .select("id")
+    .limit(1);
+
+  if (error) {
+    console.error("stripe-webhook: checkout alumno update failed", {
+      event_id: eventId || null,
+      email: normalizedEmail,
+      customer_id: customerId || null,
+      subscription_id: subscriptionId || null,
+      supabase_error: error,
+    });
+    throw new Error(error.message || "Failed to update alumno from checkout");
+  }
+
+  console.log("stripe-webhook: checkout alumno updated by email", {
+    event_id: eventId || null,
+    email: normalizedEmail,
+    customer_id: customerId || null,
+    subscription_id: subscriptionId || null,
+    updated_rows: Array.isArray(updatedRows) ? updatedRows.length : 0,
+  });
+};
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -445,9 +490,10 @@ module.exports = async function handler(req, res) {
       .eq("event_id", event.id)
       .maybeSingle();
 
-    if (existing) {
-      return json(res, 200, { received: true });
-    }
+    // Temporalmente desactivado para reprocesar eventos existentes durante el debug.
+    // if (existing) {
+    //   return json(res, 200, { received: true });
+    // }
 
     // Mark event as processed BEFORE handling (idempotency)
     await supabase.from("stripe_events").insert({
@@ -464,11 +510,12 @@ module.exports = async function handler(req, res) {
       console.log("SESSION METADATA:", session?.metadata || null);
       const customerId = normalizeId(session.customer);
       const subscriptionId = normalizeId(session.subscription);
+      const customerDetailsEmail = normalizeEmail(session?.customer_details?.email);
       const metadataCompanyId = normalizeId(session?.metadata?.company_id);
       const metadataCompanyDomain = normalizeText(session?.metadata?.company_domain, 255);
       const metadataCompanyName = normalizeText(session?.metadata?.company_name, 120);
       const sessionEmail =
-        normalizeEmail(session?.customer_details?.email) ||
+        customerDetailsEmail ||
         normalizeEmail(session?.customer_email) ||
         normalizeEmail(session?.metadata?.email) ||
         normalizeEmail(session?.metadata?.admin_email);
@@ -484,6 +531,13 @@ module.exports = async function handler(req, res) {
       const status = session.subscription_status
         ? String(session.subscription_status).toLowerCase()
         : "active";
+
+      await updateAlumnoByEmailFromCheckout(supabase, {
+        eventId: event.id,
+        email: customerDetailsEmail,
+        customerId,
+        subscriptionId,
+      });
 
       const company = await ensureCompany(supabase, {
         customerId,
