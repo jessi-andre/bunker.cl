@@ -1,4 +1,5 @@
 let csrfToken = null;
+let adminEmail = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -53,9 +54,11 @@ const loadDashboard = async () => {
       throw new Error(data?.error || "No se pudo cargar el dashboard");
     }
 
-    $("session-info").textContent = data?.admin_email
-      ? `Vista simple para seguimiento de alumnos y onboarding. Sesion activa: ${data.admin_email}`
-      : "Vista simple para seguimiento de alumnos y onboarding.";
+    adminEmail = String(data?.admin_email || "").trim().toLowerCase() || null;
+
+    $("session-info").textContent = adminEmail
+      ? `Sesion activa: ${adminEmail}`
+      : "Sesion activa";
 
     $("count-total").textContent = String(data?.counts?.total ?? 0);
     $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
@@ -101,6 +104,49 @@ const loadDashboard = async () => {
   }
 };
 
+const openBillingPortal = async () => {
+  const billingBtn = $("billing-btn");
+  const originalText = billingBtn?.textContent || "Facturacion";
+
+  if (!adminEmail) {
+    $("dashboard-error").textContent = "No se pudo identificar el email del admin para facturacion.";
+    $("dashboard-error").hidden = false;
+    return;
+  }
+
+  try {
+    $("dashboard-error").hidden = true;
+    if (billingBtn) {
+      billingBtn.disabled = true;
+      billingBtn.textContent = "Abriendo portal...";
+    }
+
+    const response = await fetch("/api/create-portal-session", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: adminEmail }),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data?.url) {
+      throw new Error(data?.error || "No se pudo abrir el portal de facturacion");
+    }
+
+    window.location.href = data.url;
+  } catch (error) {
+    $("dashboard-error").textContent =
+      error?.message || "No se pudo abrir el portal de facturacion";
+    $("dashboard-error").hidden = false;
+    if (billingBtn) {
+      billingBtn.disabled = false;
+      billingBtn.textContent = originalText;
+    }
+  }
+};
+
 const logout = async () => {
   try {
     if (!csrfToken) {
@@ -121,6 +167,7 @@ const logout = async () => {
   window.location.href = "/login.html";
 };
 
+$("billing-btn")?.addEventListener("click", openBillingPortal);
 $("logout-btn")?.addEventListener("click", logout);
 
 (async () => {

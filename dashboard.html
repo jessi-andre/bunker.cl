@@ -6,6 +6,25 @@
     <title>Panel MODU</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
+      :root {
+        --dashboard-bg: #0a0a0a;
+        --dashboard-surface: #111111;
+        --dashboard-surface-2: #171717;
+        --dashboard-border: rgba(255, 255, 255, 0.1);
+        --dashboard-text: #ffffff;
+        --dashboard-muted: rgba(255, 255, 255, 0.62);
+        --dashboard-accent: #a8ff3e;
+        --dashboard-accent-soft: rgba(168, 255, 62, 0.12);
+        --dashboard-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(168, 255, 62, 0.12), transparent 28%),
+          linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+        color: var(--dashboard-text);
+      }
+
       .dashboard-shell {
         padding: calc(var(--space-6) + 0.5rem) 0 var(--space-6);
       }
@@ -15,10 +34,12 @@
         gap: var(--space-4);
         margin-bottom: var(--space-5);
         padding: var(--space-5);
-        background: linear-gradient(135deg, rgba(154, 199, 86, 0.14), rgba(255, 255, 255, 0.94));
-        border: 1px solid rgba(154, 199, 86, 0.2);
+        background:
+          linear-gradient(135deg, rgba(168, 255, 62, 0.09), rgba(255, 255, 255, 0.02)),
+          var(--dashboard-surface);
+        border: 1px solid rgba(168, 255, 62, 0.12);
         border-radius: var(--radius-lg);
-        box-shadow: var(--shadow);
+        box-shadow: var(--dashboard-shadow);
       }
 
       .dashboard-topline {
@@ -29,16 +50,18 @@
 
       .dashboard-intro h1 {
         margin-bottom: var(--space-2);
+        color: var(--dashboard-text);
       }
 
       .dashboard-subtitle {
         max-width: 60ch;
         margin: 0;
+        color: var(--dashboard-muted);
       }
 
       .dashboard-meta {
         font-size: 0.92rem;
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.48);
       }
 
       .dashboard-actions {
@@ -55,8 +78,8 @@
         min-height: 38px;
         padding: 0.55rem 0.85rem;
         border-radius: 999px;
-        background: var(--accent-soft);
-        color: #4d6d1c;
+        background: var(--dashboard-accent-soft);
+        color: var(--dashboard-accent);
         font-size: 0.85rem;
         font-weight: 700;
       }
@@ -68,16 +91,16 @@
       }
 
       .summary-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--dashboard-surface);
+        border: 1px solid var(--dashboard-border);
         border-radius: var(--radius-lg);
         padding: var(--space-4);
-        box-shadow: var(--shadow);
+        box-shadow: var(--dashboard-shadow);
       }
 
       .summary-card span {
         display: block;
-        color: var(--muted);
+        color: var(--dashboard-muted);
         font-size: 0.9rem;
         margin-bottom: 0.45rem;
       }
@@ -87,27 +110,30 @@
         font-size: clamp(2rem, 4vw, 2.6rem);
         line-height: 1;
         letter-spacing: -0.04em;
+        color: var(--dashboard-text);
       }
 
       .dashboard-panel {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--dashboard-surface);
+        border: 1px solid var(--dashboard-border);
         border-radius: var(--radius-lg);
-        box-shadow: var(--shadow);
+        box-shadow: var(--dashboard-shadow);
         overflow: hidden;
       }
 
       .dashboard-panel-head {
         padding: var(--space-4);
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--dashboard-border);
       }
 
       .dashboard-panel-head h2 {
         margin-bottom: 0.35rem;
+        color: var(--dashboard-text);
       }
 
       .dashboard-panel-head p {
         margin: 0;
+        color: var(--dashboard-muted);
       }
 
       .dashboard-table-wrap {
@@ -123,65 +149,45 @@
       .dashboard-table td {
         padding: 1rem;
         text-align: left;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--dashboard-border);
         font-size: 0.95rem;
         vertical-align: middle;
       }
 
       .dashboard-table th {
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.48);
         font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        background: rgba(27, 33, 39, 0.02);
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .dashboard-table tbody tr:hover {
-        background: rgba(154, 199, 86, 0.05);
+        background: rgba(168, 255, 62, 0.05);
       }
 
       .dashboard-table tbody tr:last-child td {
         border-bottom: 0;
       }
 
+      .dashboard-table td {
+        color: var(--dashboard-text);
+      }
+
       .name-cell strong {
         display: block;
         font-size: 0.98rem;
-        color: var(--text);
+        color: var(--dashboard-text);
       }
 
       .name-cell span {
         display: block;
         margin-top: 0.2rem;
         font-size: 0.82rem;
-        color: var(--muted);
+        color: rgba(255, 255, 255, 0.46);
       }
 
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        min-height: 30px;
-        padding: 0.2rem 0.7rem;
-        border-radius: 999px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        background: var(--surface-2);
-      }
-
-      .status-pill.is-active {
-        background: rgba(154, 199, 86, 0.16);
-        color: #4d6d1c;
-      }
-
-      .status-pill.is-pending {
-        background: rgba(241, 196, 15, 0.14);
-        color: #8a6d00;
-      }
-
-      .status-pill.is-muted {
-        color: var(--muted);
-      }
-
+      .status-pill,
       .onboarding-pill {
         display: inline-flex;
         align-items: center;
@@ -192,14 +198,21 @@
         font-weight: 700;
       }
 
+      .status-pill.is-active,
       .onboarding-pill.is-done {
-        background: rgba(154, 199, 86, 0.16);
-        color: #4d6d1c;
+        background: rgba(168, 255, 62, 0.16);
+        color: var(--dashboard-accent);
       }
 
+      .status-pill.is-pending {
+        background: rgba(255, 190, 11, 0.14);
+        color: #ffd166;
+      }
+
+      .status-pill.is-muted,
       .onboarding-pill.is-waiting {
-        background: rgba(27, 33, 39, 0.06);
-        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.62);
       }
 
       .dashboard-empty,
@@ -208,8 +221,17 @@
         padding: var(--space-4);
       }
 
+      .dashboard-loading,
+      .dashboard-empty {
+        color: var(--dashboard-muted);
+      }
+
       .dashboard-error {
-        color: #b23a3a;
+        color: #ff8f8f;
+      }
+
+      .dashboard-link {
+        color: var(--dashboard-accent);
       }
 
       @media (min-width: 768px) {
@@ -239,16 +261,16 @@
               <p class="eyebrow">Admin</p>
               <h1>Panel MODU</h1>
               <p class="dashboard-subtitle">
-                Vista simple para seguimiento de alumnos y onboarding dentro de tu sede.
+                Vista simple para seguimiento de alumnos, onboarding y estado operativo del gym.
               </p>
               <p class="dashboard-meta" id="session-info">Cargando panel...</p>
             </div>
             <div class="dashboard-actions">
-              <a href="/gestionar.html" class="btn btn-accent">Portal de facturación</a>
+              <button id="billing-btn" type="button" class="btn btn-accent">Facturación</button>
               <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesión</button>
             </div>
           </div>
-          <span class="dashboard-note">Facturación y Stripe se gestionan desde el portal de facturación.</span>
+          <span class="dashboard-note">Facturación abre directo el Stripe Customer Portal del admin logueado.</span>
         </section>
 
         <section class="summary-grid" aria-label="Resumen">
