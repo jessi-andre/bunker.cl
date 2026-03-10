@@ -147,6 +147,7 @@
       <div class="actions">
         <a
           href="https://wa.me/56912345678"
+          id="whatsapp-link"
           class="btn btn-primary"
           target="_blank"
           rel="noopener noreferrer"
@@ -156,5 +157,22 @@
         <a href="/" class="btn btn-ghost">Volver al inicio</a>
       </div>
     </main>
+    <script>
+      (function () {
+        const whatsappLink = document.getElementById("whatsapp-link");
+        if (!whatsappLink) return;
+
+        const params = new URLSearchParams(window.location.search);
+        const email = String(params.get("email") || "").trim().toLowerCase();
+        const whatsappNumber = "56912345678";
+        const message = [
+          "Hola! Me acabo de inscribir en MODU.",
+          `Mi email es: ${email || "[EMAIL]"}`,
+          "Ya completé mis datos iniciales y quiero coordinar mi evaluación inicial.",
+        ].join("\n");
+
+        whatsappLink.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      })();
+    </script>
   </body>
 </html>
