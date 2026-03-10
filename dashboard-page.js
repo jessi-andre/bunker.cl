@@ -19,6 +19,15 @@ const getStatusClass = (status) => {
   return "status-pill is-muted";
 };
 
+const formatStatusLabel = (status) => {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (!normalized) return "Sin estado";
+  if (normalized === "active") return "Activo";
+  if (normalized === "pending") return "Pendiente";
+  if (normalized === "cancelled") return "Cancelado";
+  return normalized;
+};
+
 const fetchCsrfToken = async () => {
   const response = await fetch("/api/csrf", {
     method: "GET",
@@ -80,6 +89,8 @@ const loadDashboard = async () => {
           alumno?.onboarding_completed === true
             ? "onboarding-pill is-done"
             : "onboarding-pill is-waiting";
+        const paymentStatus = formatStatusLabel(alumno?.status);
+        const planLabel = String(alumno?.plan || "").trim() || "Sin plan";
 
         return `
           <tr>
@@ -88,8 +99,12 @@ const loadDashboard = async () => {
               <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en onboarding"}</span>
             </td>
             <td>${alumno?.email || "-"}</td>
-            <td><span class="${getStatusClass(alumno?.status)}">${alumno?.status || "-"}</span></td>
+            <td><span class="${getStatusClass(alumno?.status)}">${paymentStatus}</span></td>
             <td><span class="${onboardingClass}">${onboardingText}</span></td>
+            <td class="name-cell">
+              <strong>${paymentStatus}</strong>
+              <span>${planLabel}</span>
+            </td>
             <td>${formatDate(alumno?.created_at)}</td>
           </tr>
         `;

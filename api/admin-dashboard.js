@@ -33,7 +33,7 @@ module.exports = async function handler(req, res) {
 
     const { data: alumnos, error: alumnosError } = await supabase
       .from("alumnos")
-      .select("full_name, email, status, onboarding_completed, created_at")
+      .select("full_name, email, plan, status, onboarding_completed, created_at")
       .eq("company_id", company_id)
       .order("created_at", { ascending: false });
 
