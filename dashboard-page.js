@@ -54,8 +54,8 @@ const loadDashboard = async () => {
     }
 
     $("session-info").textContent = data?.admin_email
-      ? `Sesión activa: ${data.admin_email}`
-      : "Sesión activa";
+      ? `Vista simple para seguimiento de alumnos y onboarding. Sesion activa: ${data.admin_email}`
+      : "Vista simple para seguimiento de alumnos y onboarding.";
 
     $("count-total").textContent = String(data?.counts?.total ?? 0);
     $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
@@ -71,12 +71,22 @@ const loadDashboard = async () => {
 
     $("dashboard-rows").innerHTML = alumnos
       .map((alumno) => {
-        const onboardingText = alumno?.onboarding_completed === true ? "Sí" : "No";
+        const fullName = String(alumno?.full_name || "").trim() || "Sin nombre";
+        const onboardingText = alumno?.onboarding_completed === true ? "Si" : "No";
+        const onboardingClass =
+          alumno?.onboarding_completed === true
+            ? "onboarding-pill is-done"
+            : "onboarding-pill is-waiting";
+
         return `
           <tr>
+            <td class="name-cell">
+              <strong>${fullName}</strong>
+              <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en onboarding"}</span>
+            </td>
             <td>${alumno?.email || "-"}</td>
             <td><span class="${getStatusClass(alumno?.status)}">${alumno?.status || "-"}</span></td>
-            <td>${onboardingText}</td>
+            <td><span class="${onboardingClass}">${onboardingText}</span></td>
             <td>${formatDate(alumno?.created_at)}</td>
           </tr>
         `;
