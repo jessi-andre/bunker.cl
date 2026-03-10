@@ -65,9 +65,7 @@ const loadDashboard = async () => {
 
     adminEmail = String(data?.admin_email || "").trim().toLowerCase() || null;
 
-    $("session-info").textContent = adminEmail
-      ? `Sesion activa: ${adminEmail}`
-      : "Sesion activa";
+    $("session-info").textContent = adminEmail ? "Panel listo para gestionar tu gimnasio." : "Panel listo";
 
     $("count-total").textContent = String(data?.counts?.total ?? 0);
     $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
@@ -117,10 +115,10 @@ const loadDashboard = async () => {
 const openBillingPortal = async (event) => {
   event?.preventDefault();
   const billingBtn = $("billing-btn");
-  const originalText = billingBtn?.textContent || "Administrar cuenta MODU";
+  const originalText = billingBtn?.textContent || "Ver plan MODU";
 
   if (!adminEmail) {
-    $("dashboard-error").textContent = "No se pudo identificar el email del admin para facturacion.";
+    $("dashboard-error").textContent = "No pudimos abrir tu plan MODU en este momento.";
     $("dashboard-error").hidden = false;
     return;
   }
@@ -129,7 +127,7 @@ const openBillingPortal = async (event) => {
     $("dashboard-error").hidden = true;
     if (billingBtn) {
       billingBtn.disabled = true;
-      billingBtn.textContent = "Abriendo portal...";
+      billingBtn.textContent = "Abriendo...";
     }
 
     const response = await fetch("/api/create-portal-session", {
@@ -143,13 +141,15 @@ const openBillingPortal = async (event) => {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || !data?.url) {
-      throw new Error(data?.error || "No se pudo abrir el portal de facturacion");
+      throw new Error(data?.error || "No se pudo abrir tu plan MODU");
     }
 
-    window.location.href = data.url;
+    const newWindow = window.open(data.url, "_blank", "noopener,noreferrer");
+    if (!newWindow) {
+      window.location.href = data.url;
+    }
   } catch (error) {
-    $("dashboard-error").textContent =
-      error?.message || "No se pudo abrir el portal de facturacion";
+    $("dashboard-error").textContent = error?.message || "No se pudo abrir tu plan MODU";
     $("dashboard-error").hidden = false;
     if (billingBtn) {
       billingBtn.disabled = false;
