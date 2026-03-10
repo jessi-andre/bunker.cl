@@ -42,6 +42,21 @@ const fetchCsrfToken = async () => {
   csrfToken = data?.csrf_token || data?.csrfToken || null;
 };
 
+const ensureAdminSession = async () => {
+  const response = await fetch("/api/test-cookie", {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (response.status === 401) {
+    window.location.replace("/login.html");
+    return false;
+  }
+
+  return response.ok;
+};
+
 const loadDashboard = async () => {
   $("dashboard-loading").hidden = false;
   $("dashboard-error").hidden = true;
@@ -49,9 +64,15 @@ const loadDashboard = async () => {
   $("dashboard-table-wrap").hidden = true;
 
   try {
+    const hasSession = await ensureAdminSession();
+    if (!hasSession) {
+      return;
+    }
+
     const response = await fetch("/api/admin-dashboard", {
       method: "GET",
       credentials: "include",
+      cache: "no-store",
     });
     const data = await response.json().catch(() => ({}));
 
@@ -180,6 +201,9 @@ const logout = async () => {
 
 $("billing-btn")?.addEventListener("click", openBillingPortal);
 $("logout-btn")?.addEventListener("click", logout);
+window.addEventListener("pageshow", () => {
+  loadDashboard();
+});
 
 (async () => {
   try {
