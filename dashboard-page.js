@@ -86,8 +86,6 @@ const loadDashboard = async () => {
 
     adminEmail = String(data?.admin_email || "").trim().toLowerCase() || null;
 
-    $("session-info").textContent = "Acceso central a la base de datos de alumnos.";
-
     $("count-total").textContent = String(data?.counts?.total ?? 0);
     $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
     $("count-pending").textContent = String(data?.counts?.pending ?? 0);
