@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel MODU</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .dashboard-shell {
+        padding: calc(var(--space-6) + 1rem) 0 var(--space-6);
+      }
+
+      .dashboard-header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
+      }
+
+      .dashboard-actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+
+      .dashboard-subtitle {
+        color: var(--muted);
+        max-width: 60ch;
+      }
+
+      .summary-grid {
+        display: grid;
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
+      }
+
+      .summary-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        box-shadow: var(--shadow);
+      }
+
+      .summary-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .summary-card strong {
+        display: block;
+        font-size: 2rem;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .dashboard-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .dashboard-panel-head {
+        padding: var(--space-4);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dashboard-panel-head p {
+        margin: 0;
+      }
+
+      .dashboard-table-wrap {
+        overflow-x: auto;
+      }
+
+      .dashboard-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .dashboard-table th,
+      .dashboard-table td {
+        padding: 0.95rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.95rem;
+      }
+
+      .dashboard-table th {
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .dashboard-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0.2rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-2);
+      }
+
+      .status-pill.is-active {
+        background: rgba(154, 199, 86, 0.16);
+        color: #4d6d1c;
+      }
+
+      .status-pill.is-pending {
+        background: rgba(241, 196, 15, 0.14);
+        color: #8a6d00;
+      }
+
+      .status-pill.is-muted {
+        color: var(--muted);
+      }
+
+      .dashboard-empty,
+      .dashboard-error,
+      .dashboard-loading {
+        padding: var(--space-4);
+      }
+
+      .dashboard-error {
+        color: #b23a3a;
+      }
+
+      @media (min-width: 768px) {
+        .dashboard-header {
+          flex-direction: row;
+          align-items: flex-start;
+          justify-content: space-between;
+        }
+
+        .dashboard-actions {
+          flex-direction: row;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="section dashboard-shell">
+      <div class="container">
+        <div class="dashboard-header">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Panel MODU</h1>
+            <p class="dashboard-subtitle" id="session-info">Cargando panel...</p>
+          </div>
+          <div class="dashboard-actions">
+            <a href="/gestionar.html" class="btn btn-accent">Portal de facturación</a>
+            <button id="logout-btn" type="button" class="btn btn-ghost">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <section class="summary-grid" aria-label="Resumen">
+          <article class="summary-card">
+            <span>Alumnos totales</span>
+            <strong id="count-total">-</strong>
+          </article>
+          <article class="summary-card">
+            <span>Onboarding completado</span>
+            <strong id="count-completed">-</strong>
+          </article>
+          <article class="summary-card">
+            <span>Pendientes</span>
+            <strong id="count-pending">-</strong>
+          </article>
+        </section>
+
+        <section class="dashboard-panel" aria-label="Lista de alumnos">
+          <div class="dashboard-panel-head">
+            <h2>Alumnos</h2>
+            <p>Vista simple por empresa para seguimiento del onboarding.</p>
+          </div>
+
+          <p id="dashboard-loading" class="dashboard-loading">Cargando alumnos...</p>
+          <p id="dashboard-error" class="dashboard-error" hidden></p>
+          <p id="dashboard-empty" class="dashboard-empty" hidden>No hay alumnos todavía.</p>
+
+          <div class="dashboard-table-wrap" id="dashboard-table-wrap" hidden>
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Onboarding</th>
+                  <th>Creado</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-rows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="dashboard-page.js" defer></script>
+  </body>
+</html>

@@ -21,7 +21,7 @@ form.addEventListener("submit", async (event) => {
     });
 
     if (response.status === 200) {
-      window.location.href = "/gestionar.html";
+      window.location.href = "/dashboard.html";
       return;
     }
 
