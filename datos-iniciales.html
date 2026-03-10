@@ -371,6 +371,12 @@
         const defaultBtnText = submitBtn.textContent;
         let csrfToken = null;
         let isSubmitting = false;
+        const onboardingEmail =
+          String(pageParams.get("email") || pageParams.get("onboarding_email") || "").trim().toLowerCase();
+        const endpointUrl = new URL(endpoint, window.location.origin);
+        if (onboardingEmail) {
+          endpointUrl.searchParams.set("email", onboardingEmail);
+        }
 
         function logDebug(label, payload) {
           console.log("datos-iniciales:", label, payload);
@@ -408,14 +414,25 @@
           if (pageParams.get("saved") === "1") {
             logDebug("saved_param_detected", {
               saved_param: pageParams.get("saved"),
+              email_detected: onboardingEmail || null,
             });
             setStatus("success", "Datos guardados correctamente");
             continueBtn.hidden = false;
             return;
           }
 
+          if (!onboardingEmail) {
+            logDebug("missing_onboarding_email", {
+              email_detected: null,
+              auto_redirect_disabled: true,
+            });
+            setStatus("error", "No pudimos identificar el email del onboarding.");
+            continueBtn.hidden = true;
+            return;
+          }
+
           try {
-            const response = await fetch(endpoint, {
+            const response = await fetch(endpointUrl.toString(), {
               method: "GET",
               credentials: "include",
             });
@@ -428,11 +445,12 @@
             if (!response.ok) return;
             const data = await response.json().catch(() => ({}));
             logDebug("initial_state_response", {
-              email_detected: data?.email || null,
+              email_detected: onboardingEmail || null,
               has_alumno: data?.has_alumno,
               onboarding_completed: data?.onboarding_completed,
               onboarding_completed_at: data?.onboarding_completed_at || null,
               status: data?.status || null,
+              identified: data?.identified,
               should_show_completed_message:
                 data?.has_alumno === true && data?.onboarding_completed === true,
               auto_redirect_disabled: true,
@@ -460,12 +478,18 @@
 
           const formData = new FormData(form);
           const payload = {
+            email: onboardingEmail,
             full_name: String(formData.get("full_name") || "").trim(),
             goal: String(formData.get("goal") || "").trim(),
             availability: String(formData.get("availability") || "").trim(),
             experience: String(formData.get("experience") || "").trim(),
             injuries: String(formData.get("injuries") || "").trim(),
           };
+
+          if (!payload.email) {
+            setStatus("error", "No pudimos identificar el email del onboarding.");
+            return;
+          }
 
           if (!payload.full_name || !payload.goal || !payload.availability) {
             setStatus("error", "Completa los campos obligatorios antes de enviar.");
@@ -478,7 +502,7 @@
 
           try {
             const token = await fetchCsrfToken();
-            const response = await fetch(endpoint, {
+            const response = await fetch(endpointUrl.toString(), {
               method: "POST",
               credentials: "include",
               headers: {
@@ -490,11 +514,12 @@
 
             const data = await response.json().catch(() => ({}));
             logDebug("submit_response", {
-              email_detected: data?.email || null,
+              email_detected: onboardingEmail || null,
               has_alumno: data?.has_alumno,
               onboarding_completed: data?.onboarding_completed,
               onboarding_completed_at: data?.onboarding_completed_at || null,
               status: data?.status || null,
+              identified: data?.identified,
               response_ok: response.ok,
               response_status: response.status,
               response_step: data?.step || null,

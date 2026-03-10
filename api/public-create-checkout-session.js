@@ -141,7 +141,7 @@ module.exports = async (req, res) => {
       mode: "subscription",
       customer_email: normalizedEmail,
       line_items: [{ price, quantity: 1 }],
-      success_url: `${baseUrl}/gracias.html?ok=1&plan=${requestedPlan}`,
+      success_url: `${baseUrl}/gracias.html?ok=1&plan=${requestedPlan}&email=${encodeURIComponent(normalizedEmail)}`,
       cancel_url: `${baseUrl}/index.html#planes`,
       metadata: onboardingMeta,
       subscription_data: {

@@ -1,25 +1,15 @@
 const {
   json,
   validateRequestOrigin,
-  requireAuthAndTenant,
   getSupabaseAdmin,
+  getCompanyByReqHost,
   parseCookies,
 } = require("../lib/_lib");
 
-const getAdminEmail = async (supabase, adminId, companyId) => {
-  const { data, error } = await supabase
-    .from("company_admins")
-    .select("email")
-    .eq("id", adminId)
-    .eq("company_id", companyId)
-    .maybeSingle();
+const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
 
-  if (error) {
-    throw new Error(error.message || "Failed to read admin email");
-  }
-
-  return String(data?.email || "").trim().toLowerCase();
-};
+const getOnboardingEmail = (req) =>
+  normalizeEmail(req?.query?.email || req?.query?.onboarding_email || req?.body?.email);
 
 module.exports = async function handler(req, res) {
   if (!validateRequestOrigin(req, res)) return;
@@ -44,34 +34,45 @@ module.exports = async function handler(req, res) {
   });
 
   try {
-      const auth = await requireAuthAndTenant(req, {
-        allowInactiveSubscription: true,
-      });
-      console.log("save-onboarding: session found", {
-        admin_id: auth.admin_id,
-        company_id: auth.company_id,
-      });
+      const company = await getCompanyByReqHost(req);
+      if (!company?.id) {
+        return send(404, { ok: false, step: "get_company", error: "COMPANY_NOT_FOUND" }, { stage: "company" });
+      }
+
       const supabase = getSupabaseAdmin();
-      const adminEmail = await getAdminEmail(supabase, auth.admin_id, auth.company_id);
+      const onboardingEmail = getOnboardingEmail(req);
       const alumnoIdentifier = {
-        admin_id: auth.admin_id,
-        company_id: auth.company_id,
-        email: adminEmail || null,
+        company_id: company.id,
+        email: onboardingEmail || null,
+        email_source: req?.query?.email
+          ? "query.email"
+          : req?.query?.onboarding_email
+            ? "query.onboarding_email"
+            : req?.body?.email
+              ? "body.email"
+              : null,
       };
 
       console.log("save-onboarding: alumno identifier", alumnoIdentifier);
 
-      if (!adminEmail) {
-        console.log("save-onboarding: admin email not found", alumnoIdentifier);
-        return send(500, { ok: false, step: "get_admin_email", error: "ADMIN_EMAIL_NOT_FOUND" }, { stage: "admin_email" });
+      if (!onboardingEmail) {
+        return send(200, {
+          ok: true,
+          email: null,
+          has_alumno: false,
+          status: null,
+          onboarding_completed: false,
+          onboarding_completed_at: null,
+          identified: false,
+        }, { stage: "no_email_identifier" });
       }
 
       if (req.method === "GET") {
         const { data, error } = await supabase
           .from("alumnos")
           .select("id, email, status, onboarding_completed, onboarding_completed_at")
-          .eq("company_id", auth.company_id)
-          .eq("email", adminEmail)
+          .eq("company_id", company.id)
+          .eq("email", onboardingEmail)
           .maybeSingle();
 
         console.log("save-onboarding: alumno lookup result", {
@@ -90,10 +91,11 @@ module.exports = async function handler(req, res) {
 
         return send(200, {
           has_alumno: Boolean(data?.id),
-          email: data?.email || adminEmail,
+          email: data?.email || onboardingEmail,
           status: data?.status || null,
           onboarding_completed: Boolean(data?.onboarding_completed),
           onboarding_completed_at: data?.onboarding_completed_at || null,
+          identified: true,
         }, { stage: "get_ok" });
       }
 
@@ -139,8 +141,8 @@ module.exports = async function handler(req, res) {
       const { data: existingAlumno, error: existingAlumnoError } = await supabase
         .from("alumnos")
         .select("id, email, status, onboarding_completed, onboarding_completed_at")
-        .eq("company_id", auth.company_id)
-        .eq("email", adminEmail)
+        .eq("company_id", company.id)
+        .eq("email", onboardingEmail)
         .maybeSingle();
 
       console.log("save-onboarding: alumno lookup result", {
@@ -159,8 +161,8 @@ module.exports = async function handler(req, res) {
 
       const nowIso = new Date().toISOString();
       const savePayload = {
-        company_id: auth.company_id,
-        email: adminEmail,
+        company_id: company.id,
+        email: onboardingEmail,
         full_name: fullName,
         goal,
         availability,
@@ -188,14 +190,15 @@ module.exports = async function handler(req, res) {
       console.log("save-onboarding: save ok", alumnoIdentifier);
       return send(200, {
         ok: true,
-        email: adminEmail,
+        email: onboardingEmail,
         has_alumno: true,
         status: existingAlumno?.status || null,
         onboarding_completed: true,
         onboarding_completed_at: nowIso,
+        identified: true,
       }, { stage: "save_ok", redirect_instruction: null });
     } catch (err) {
-      const status = Number(err?.status) === 401 ? 401 : 500;
+      const status = Number(err?.status) || 500;
       console.log("save-onboarding: js/auth error", {
         status,
         error: err?.message || String(err),
