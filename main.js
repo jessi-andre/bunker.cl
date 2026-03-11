@@ -3,7 +3,7 @@ const MAPS = {
   apple: "http://maps.apple.com/?q=Av.+Providencia+1234,+Providencia,+Santiago+de+Chile",
 };
 
-const PLAN_CATALOG = {
+const FALLBACK_PLAN_CATALOG = {
   starter: {
     id: "starter",
     name: "Starter",
@@ -22,6 +22,58 @@ const PLAN_CATALOG = {
     price: "$79.990 CLP / mes",
     includes: ["4 sesiones de entrenamiento semanales", "Nutrición deportiva con seguimiento semanal", "Kinesiología y evaluación funcional mensual", "Revisión integral de progreso", "Acceso directo a todo el equipo"],
   },
+};
+
+let PLAN_CATALOG = { ...FALLBACK_PLAN_CATALOG };
+
+const formatPrice = (amount, currency = "CLP", interval = "month") => {
+  const formattedAmount = new Intl.NumberFormat("es-CL").format(Number(amount || 0));
+  const intervalLabel = interval === "month" ? "mes" : interval;
+  return `$${formattedAmount} ${currency} / ${intervalLabel}`;
+};
+
+const normalizeRemotePlans = (plans) => {
+  if (!Array.isArray(plans) || plans.length === 0) return null;
+
+  const normalized = {};
+
+  plans.forEach((plan) => {
+    const planKey = String(plan?.plan_key || "").trim().toLowerCase();
+    if (!planKey) return;
+
+    normalized[planKey] = {
+      id: planKey,
+      name: String(plan?.name || "Plan").trim() || "Plan",
+      price: formatPrice(plan?.price_amount, plan?.currency, plan?.billing_interval),
+      includes: plan?.description ? [String(plan.description).trim()] : [],
+    };
+  });
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
+};
+
+const loadPublicPlans = async () => {
+  try {
+    const response = await fetch("/api/public-plans", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No pudimos cargar los planes.");
+    }
+
+    const data = await response.json();
+    const normalized = normalizeRemotePlans(data);
+
+    if (normalized) {
+      PLAN_CATALOG = normalized;
+    }
+  } catch (_) {
+    PLAN_CATALOG = { ...FALLBACK_PLAN_CATALOG };
+  }
 };
 
 const header = document.querySelector(".site-header");
@@ -399,3 +451,4 @@ toTopButton?.addEventListener("click", () => {
 setPrimaryMapsLink();
 handleToTopVisibility();
 trackPurchaseOnThankYou();
+loadPublicPlans();
