@@ -77,10 +77,13 @@ const loadPublicPlans = async () => {
 };
 
 const applyYogaBranding = () => {
+  document.body.classList.add("tenant-yoga");
+
   const heroEyebrow = document.querySelector(".hero .eyebrow");
   const heroTitle = document.querySelector(".hero h1");
   const heroLead = document.querySelector(".hero .lead");
   const heroPrimaryCta = document.querySelector(".hero .hero-actions .btn-accent");
+  const heroImage = document.querySelector(".hero .hero-bg img");
 
   const navServices = document.querySelector('#menu a[href="#servicios"]');
   const navTeam = document.querySelector('#menu a[href="#equipo"]');
@@ -102,6 +105,12 @@ const applyYogaBranding = () => {
 
   if (heroPrimaryCta) {
     heroPrimaryCta.textContent = "Reservar clase";
+  }
+
+  if (heroImage) {
+    heroImage.src =
+      "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80";
+    heroImage.alt = "Practica de yoga en un espacio luminoso y sereno";
   }
 
   if (navServices) {
