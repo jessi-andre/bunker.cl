@@ -16,6 +16,12 @@
     <meta name="twitter:title" content="MODU | Entrenamiento + Nutrición + Kinesiología" />
     <meta name="twitter:description" content="Centro premium en Santiago. Resultados reales con seguimiento personalizado." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon.ico" sizes="any" />
 
@@ -436,6 +442,213 @@
       body.tenant-yoga .footer-bottom a {
         color: rgba(36, 49, 39, 0.56);
       }
+
+      .tenant-yoga-shell { display: none; }
+      body.tenant-yoga { font-family: "Manrope", sans-serif; }
+      body.tenant-yoga .default-landing-section { display: none !important; }
+      body.tenant-yoga .tenant-yoga-shell { display: block; }
+      body.tenant-yoga .logo,
+      body.tenant-yoga .editorial-kicker,
+      body.tenant-yoga .editorial-title,
+      body.tenant-yoga .section-heading h2,
+      body.tenant-yoga .yoga-class-card h3,
+      body.tenant-yoga .yoga-benefit-card h3,
+      body.tenant-yoga .footer-brand,
+      body.tenant-yoga .footer-col-title {
+        font-family: "Cormorant Garamond", serif;
+      }
+
+      .tenant-yoga-shell .section {
+        padding: 5.5rem 0;
+      }
+
+      .tenant-yoga-shell .container {
+        max-width: 1180px;
+      }
+
+      .yoga-hero {
+        padding: 4rem 0 5rem;
+      }
+
+      .yoga-hero-layout,
+      .yoga-split-layout {
+        display: grid;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .yoga-hero-copy {
+        max-width: 31rem;
+      }
+
+      .editorial-kicker {
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: #5c6958;
+        font-size: 0.95rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .editorial-title {
+        margin: 0;
+        font-size: clamp(3rem, 8vw, 6.2rem);
+        line-height: 0.94;
+        font-weight: 600;
+        color: #283126;
+      }
+
+      .editorial-copy {
+        margin-top: 1.5rem;
+        max-width: 34rem;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: rgba(40, 49, 38, 0.72);
+      }
+
+      .yoga-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
+
+      .image-frame,
+      .soft-panel,
+      .yoga-class-card,
+      .yoga-benefit-card {
+        background: rgba(255, 252, 248, 0.78);
+        border: 1px solid rgba(94, 103, 83, 0.12);
+        border-radius: 28px;
+        box-shadow: 0 20px 70px rgba(77, 86, 72, 0.08);
+        backdrop-filter: blur(14px);
+      }
+
+      .image-frame {
+        overflow: hidden;
+      }
+
+      .image-frame img {
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+        object-fit: cover;
+      }
+
+      .yoga-intro .soft-panel,
+      .yoga-split-copy,
+      .yoga-cta-panel {
+        padding: 2.5rem;
+      }
+
+      .yoga-intro .soft-panel {
+        max-width: 860px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .section-heading {
+        max-width: 34rem;
+        margin-bottom: 2.5rem;
+      }
+
+      .section-heading.centered {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+
+      .section-overline {
+        display: inline-block;
+        margin-bottom: 0.75rem;
+        color: #6a7666;
+        font-size: 0.82rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 4.2rem);
+        line-height: 0.98;
+        font-weight: 600;
+      }
+
+      .section-heading p {
+        margin-top: 1rem;
+        margin-bottom: 0;
+        color: rgba(40, 49, 38, 0.7);
+        line-height: 1.8;
+      }
+
+      .yoga-class-grid,
+      .yoga-benefit-grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .yoga-class-card,
+      .yoga-benefit-card {
+        padding: 2rem;
+      }
+
+      .yoga-class-card h3,
+      .yoga-benefit-card h3 {
+        margin-bottom: 0.8rem;
+        font-size: 1.75rem;
+        font-weight: 600;
+      }
+
+      .yoga-class-card p,
+      .yoga-benefit-card p {
+        margin: 0;
+        color: rgba(40, 49, 38, 0.68);
+        line-height: 1.75;
+      }
+
+      .yoga-cta-panel {
+        text-align: center;
+        background:
+          linear-gradient(180deg, rgba(255, 251, 247, 0.94), rgba(244, 236, 227, 0.9));
+      }
+
+      .yoga-cta-panel .editorial-title {
+        font-size: clamp(2.5rem, 5vw, 4.4rem);
+      }
+
+      .yoga-cta-meta {
+        margin-top: 1rem;
+        color: rgba(40, 49, 38, 0.64);
+      }
+
+      @media (min-width: 900px) {
+        .yoga-hero-layout {
+          grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        }
+
+        .yoga-split-layout {
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        }
+
+        .yoga-class-grid,
+        .yoga-benefit-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 899px) {
+        .editorial-title {
+          font-size: clamp(2.6rem, 14vw, 4.4rem);
+        }
+
+        .section-heading h2 {
+          font-size: clamp(2rem, 11vw, 3.4rem);
+        }
+
+        .image-frame img {
+          min-height: 320px;
+        }
+      }
     </style>
 
     <script src="main.js" defer></script>
@@ -467,8 +680,145 @@
 
     <main id="contenido">
 
+      <div class="tenant-yoga-shell" aria-live="polite">
+        <section class="section yoga-hero" id="yoga-home">
+          <div class="container yoga-hero-layout">
+            <div class="yoga-hero-copy">
+              <span class="editorial-kicker">Yoga Estudio</span>
+              <h1 class="editorial-title">Respira. Conecta. Fluye.</h1>
+              <p class="editorial-copy">
+                Clases de yoga para volver a tu centro, bajar el ritmo y crear una práctica que acompañe tu bienestar todos los días.
+              </p>
+              <div class="yoga-actions">
+                <a href="https://wa.me/56911111111" class="btn btn-accent btn-lg js-cta-whatsapp">Reservar clase</a>
+                <a href="#yoga-classes" class="btn btn-ghost btn-lg" data-scroll-to>Ver clases</a>
+              </div>
+            </div>
+            <div class="image-frame tenant-yoga-hero-media">
+              <img
+                src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80"
+                alt="Práctica de yoga en un estudio luminoso"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-intro" id="yoga-intro">
+          <div class="container">
+            <div class="soft-panel">
+              <div class="section-heading centered">
+                <span class="section-overline">Práctica consciente</span>
+                <h2>Encuentra equilibrio en tu rutina.</h2>
+                <p>
+                  Clases de yoga diseñadas para reconectar con tu cuerpo, calmar la mente y recuperar energía con una experiencia serena, cuidada y contemporánea.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-split" id="yoga-studio">
+          <div class="container yoga-split-layout">
+            <div class="image-frame">
+              <img
+                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80"
+                alt="Espacio de yoga cálido y minimalista"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="soft-panel yoga-split-copy">
+              <span class="section-overline">About the studio</span>
+              <h2>Un espacio para moverte con suavidad y presencia.</h2>
+              <p>
+                Creamos un estudio íntimo, luminoso y acogedor donde cada clase invita a respirar mejor, habitar el cuerpo con calma y cultivar bienestar real.
+              </p>
+              <a href="#yoga-benefits" class="btn btn-ghost" data-scroll-to>Conocer más</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-classes" id="yoga-classes">
+          <div class="container">
+            <div class="section-heading">
+              <span class="section-overline">Clases</span>
+              <h2>Encuentra la práctica que acompaña tu momento.</h2>
+              <p>
+                Una propuesta pensada para distintos ritmos, niveles y necesidades, siempre con guía cercana y una experiencia cuidada.
+              </p>
+            </div>
+            <div class="yoga-class-grid">
+              <article class="yoga-class-card">
+                <h3>Hatha</h3>
+                <p>Posturas sostenidas, respiración y foco para cultivar estabilidad, presencia y técnica.</p>
+              </article>
+              <article class="yoga-class-card">
+                <h3>Vinyasa</h3>
+                <p>Secuencias fluidas para mover energía, fortalecer el cuerpo y encontrar ritmo interno.</p>
+              </article>
+              <article class="yoga-class-card">
+                <h3>Yoga suave</h3>
+                <p>Prácticas amables para soltar tensión, descansar mejor y volver al eje con calma.</p>
+              </article>
+              <article class="yoga-class-card">
+                <h3>Meditación</h3>
+                <p>Espacios guiados para aquietar la mente, bajar revoluciones y cultivar claridad.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-benefits" id="yoga-benefits">
+          <div class="container">
+            <div class="section-heading centered">
+              <span class="section-overline">Bienestar</span>
+              <h2>Una práctica que transforma cómo te sientes.</h2>
+              <p>
+                Más que ejercicio, una pausa intencional para habitarte mejor y sostener una rutina con más balance.
+              </p>
+            </div>
+            <div class="yoga-benefit-grid">
+              <article class="yoga-benefit-card">
+                <h3>Relajar el cuerpo</h3>
+                <p>Libera tensión acumulada y permite que tu cuerpo recupere soltura y descanso.</p>
+              </article>
+              <article class="yoga-benefit-card">
+                <h3>Reducir el estrés</h3>
+                <p>Respiración, movimiento y foco para salir del modo automático y volver a la calma.</p>
+              </article>
+              <article class="yoga-benefit-card">
+                <h3>Mejorar flexibilidad</h3>
+                <p>Movilidad progresiva y consciente para ganar amplitud sin exigencia agresiva.</p>
+              </article>
+              <article class="yoga-benefit-card">
+                <h3>Conectar contigo</h3>
+                <p>Un momento solo para ti, para escuchar tu energía y crear una rutina más amable.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-cta" id="yoga-cta">
+          <div class="container">
+            <div class="soft-panel yoga-cta-panel">
+              <span class="section-overline">Empieza hoy</span>
+              <h2 class="editorial-title">Empieza tu práctica.</h2>
+              <p class="editorial-copy" style="margin-left:auto;margin-right:auto;">
+                Reserva tu primera clase y descubre una experiencia de yoga contemporánea, cálida y pensada para acompañarte de verdad.
+              </p>
+              <div class="yoga-actions" style="justify-content:center;">
+                <a href="https://wa.me/56911111111" class="btn btn-accent btn-lg js-cta-whatsapp">Reservar clase</a>
+              </div>
+              <p class="yoga-cta-meta">Escríbenos y te ayudamos a encontrar la práctica ideal para ti.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- HERO -->
-      <section class="hero" id="hero">
+      <section class="hero default-landing-section" id="hero">
         <div class="hero-bg">
           <img
             src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80"
@@ -517,7 +867,7 @@
       </section>
 
       <!-- SERVICIOS -->
-      <section class="section" id="servicios">
+      <section class="section default-landing-section" id="servicios">
         <div class="container">
           <p class="section-label">Lo que hacemos</p>
           <h2>Tres especialidades.<br><span class="highlight">Un solo proceso.</span></h2>
@@ -561,7 +911,7 @@
       </section>
 
       <!-- CÓMO FUNCIONA -->
-      <section class="section section-dark" id="como-funciona">
+      <section class="section section-dark default-landing-section" id="como-funciona">
         <div class="container">
           <p class="section-label">Proceso</p>
           <h2>Tres pasos para<br><span class="highlight">empezar hoy.</span></h2>
@@ -587,7 +937,7 @@
       </section>
 
       <!-- EQUIPO -->
-      <section class="section" id="equipo">
+      <section class="section default-landing-section" id="equipo">
         <div class="container">
           <p class="section-label">El equipo</p>
           <h2>Profesionales reales.<br><span class="highlight">Resultados reales.</span></h2>
@@ -637,7 +987,7 @@
       </section>
 
       <!-- PLANES -->
-      <section class="section section-dark" id="planes">
+      <section class="section section-dark default-landing-section" id="planes">
         <div class="container">
           <p class="section-label">Inversión</p>
           <h2>Elige tu plan.<br><span class="highlight">Cupos limitados.</span></h2>
@@ -694,7 +1044,7 @@
       </section>
 
       <!-- TESTIMONIOS -->
-      <section class="section" id="resultados">
+      <section class="section default-landing-section" id="resultados">
         <div class="container">
           <p class="section-label">Resultados</p>
           <h2>Números reales.<br><span class="highlight">Personas reales.</span></h2>
@@ -738,7 +1088,7 @@
       </section>
 
       <!-- FAQ -->
-      <section class="section section-dark" id="faq">
+      <section class="section section-dark default-landing-section" id="faq">
         <div class="container">
           <p class="section-label">Preguntas frecuentes</p>
           <h2>Todo lo que necesitas<br><span class="highlight">saber antes de empezar.</span></h2>
@@ -816,7 +1166,7 @@
       </section>
 
       <!-- UBICACION + HORARIOS -->
-      <section class="section" id="ubicacion">
+      <section class="section default-landing-section" id="ubicacion">
         <div class="container">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem;align-items:start;">
             <div>
@@ -866,7 +1216,7 @@
       </section>
 
       <!-- CTA FINAL -->
-      <section class="section section-dark" id="cta-final">
+      <section class="section section-dark default-landing-section" id="cta-final">
         <div class="container">
           <div class="cta-wrap">
             <span class="eyebrow">Últimos cupos disponibles</span>

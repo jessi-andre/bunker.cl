@@ -130,6 +130,145 @@ const applyYogaBranding = () => {
   }
 };
 
+const applyTenantYogaExperience = (company = {}) => {
+  document.body.classList.add("tenant-yoga");
+
+  const companyName = String(company?.name || "Yoga Estudio").trim() || "Yoga Estudio";
+  const companyEmail = String(company?.email || "hola@yogaestudio.cl").trim() || "hola@yogaestudio.cl";
+  const whatsappNumber = String(company?.whatsapp || "+56911111111").replace(/[^\d]/g, "");
+  const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+
+  const logo = document.querySelector(".logo");
+  const navServices = document.querySelector('#menu a[href="#servicios"]');
+  const navTeam = document.querySelector('#menu a[href="#equipo"]');
+  const navPlans = document.querySelector('#menu a[href="#planes"]:not(.nav-cta)');
+  const navFaq = document.querySelector('#menu a[href="#faq"]');
+  const navLocation = document.querySelector('#menu a[href="#ubicacion"]');
+  const navPrimaryCta = document.querySelector("#menu .nav-cta");
+  const footerGrid = document.querySelector(".footer-grid");
+  const footerBottom = document.querySelector(".footer-bottom");
+  const titleDescription = document.querySelector('meta[name="description"]');
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+
+  document.title = `${companyName} | Clases de yoga y bienestar`;
+
+  if (titleDescription) {
+    titleDescription.setAttribute(
+      "content",
+      "Clases de yoga para reconectar con tu cuerpo, bajar el estres y encontrar equilibrio en tu rutina."
+    );
+  }
+
+  if (ogTitle) ogTitle.setAttribute("content", `${companyName} | Clases y bienestar`);
+  if (ogDescription) {
+    ogDescription.setAttribute(
+      "content",
+      "Una experiencia de yoga contemporanea, suave y premium para volver a tu centro."
+    );
+  }
+  if (twitterTitle) twitterTitle.setAttribute("content", `${companyName} | Clases y bienestar`);
+  if (twitterDescription) {
+    twitterDescription.setAttribute(
+      "content",
+      "Respira, conecta y fluye con clases de yoga pensadas para tu bienestar."
+    );
+  }
+
+  if (logo) {
+    logo.textContent = companyName;
+    logo.setAttribute("aria-label", `${companyName} - Inicio`);
+  }
+
+  if (navServices) {
+    navServices.textContent = "Inicio";
+    navServices.setAttribute("href", "#yoga-intro");
+  }
+
+  if (navTeam) {
+    navTeam.textContent = "Estudio";
+    navTeam.setAttribute("href", "#yoga-studio");
+  }
+
+  if (navPlans) {
+    navPlans.textContent = "Clases";
+    navPlans.setAttribute("href", "#yoga-classes");
+  }
+
+  if (navFaq) {
+    navFaq.textContent = "Bienestar";
+    navFaq.setAttribute("href", "#yoga-benefits");
+  }
+
+  if (navLocation) {
+    navLocation.textContent = "Contacto";
+    navLocation.setAttribute("href", "#yoga-cta");
+  }
+
+  if (navPrimaryCta) {
+    navPrimaryCta.textContent = "Reservar clase";
+    navPrimaryCta.setAttribute("href", whatsappUrl);
+    navPrimaryCta.removeAttribute("data-scroll-to");
+    navPrimaryCta.setAttribute("target", "_blank");
+    navPrimaryCta.setAttribute("rel", "noopener noreferrer");
+  }
+
+  document.querySelectorAll(".js-cta-whatsapp").forEach((link) => {
+    if (!(link instanceof HTMLAnchorElement)) return;
+    link.href = whatsappUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+  });
+
+  document.querySelectorAll(".js-cta-email").forEach((link) => {
+    if (!(link instanceof HTMLAnchorElement)) return;
+    link.href = `mailto:${companyEmail}`;
+    link.textContent = companyEmail;
+  });
+
+  if (footerGrid) {
+    footerGrid.innerHTML = `
+      <div>
+        <p class="footer-brand">${companyName}</p>
+        <p class="footer-tagline">Clases de yoga, respiracion y bienestar consciente.</p>
+        <div class="footer-links" style="margin-top:1.25rem;">
+          <p>Un espacio sereno para volver a ti.</p>
+          <p>Practica guiada con sensibilidad, presencia y calma.</p>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Contacto</p>
+        <div class="footer-links">
+          <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" class="js-cta-whatsapp">WhatsApp</a>
+          <a href="mailto:${companyEmail}" class="js-cta-email">${companyEmail}</a>
+          <a href="#yoga-studio">Sobre el estudio</a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Explora</p>
+        <div class="footer-links">
+          <a href="#yoga-classes">Clases</a>
+          <a href="#yoga-benefits">Bienestar</a>
+          <a href="#yoga-cta">Reservar clase</a>
+        </div>
+      </div>
+    `;
+  }
+
+  if (footerBottom) {
+    footerBottom.innerHTML = `
+      <span>© 2026 ${companyName}. Todos los derechos reservados.</span>
+      <div class="footer-legal-links">
+        <a href="terminos.html">Términos</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="portal.html">Gestionar membresía</a>
+      </div>
+    `;
+  }
+};
+
 const loadTenantBranding = async () => {
   try {
     const response = await fetch("/api/test-tenant", {
@@ -145,7 +284,7 @@ const loadTenantBranding = async () => {
     const tenantSlug = String(data?.company?.slug || "").trim().toLowerCase();
 
     if (tenantSlug === "yoga") {
-      applyYogaBranding();
+      applyTenantYogaExperience(data?.company || {});
     }
   } catch (_) {}
 };
