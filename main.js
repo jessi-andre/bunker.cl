@@ -76,6 +76,71 @@ const loadPublicPlans = async () => {
   }
 };
 
+const applyYogaBranding = () => {
+  const heroEyebrow = document.querySelector(".hero .eyebrow");
+  const heroTitle = document.querySelector(".hero h1");
+  const heroLead = document.querySelector(".hero .lead");
+  const heroPrimaryCta = document.querySelector(".hero .hero-actions .btn-accent");
+
+  const navServices = document.querySelector('#menu a[href="#servicios"]');
+  const navTeam = document.querySelector('#menu a[href="#equipo"]');
+  const navPlans = document.querySelector('#menu a[href="#planes"]:not(.nav-cta)');
+  const navPrimaryCta = document.querySelector("#menu .nav-cta");
+
+  if (heroEyebrow) {
+    heroEyebrow.textContent = "YOGA ESTUDIO · CLASES Y BIENESTAR";
+  }
+
+  if (heroTitle) {
+    heroTitle.textContent = "Respira. Conecta. Fluye.";
+  }
+
+  if (heroLead) {
+    heroLead.textContent =
+      "Clases de yoga para reconectar con tu cuerpo, bajar el estrés y encontrar equilibrio en tu rutina.";
+  }
+
+  if (heroPrimaryCta) {
+    heroPrimaryCta.textContent = "Reservar clase";
+  }
+
+  if (navServices) {
+    navServices.textContent = "Clases";
+  }
+
+  if (navTeam) {
+    navTeam.textContent = "Profes";
+  }
+
+  if (navPlans) {
+    navPlans.textContent = "Membresías";
+  }
+
+  if (navPrimaryCta) {
+    navPrimaryCta.textContent = "Reservar clase";
+  }
+};
+
+const loadTenantBranding = async () => {
+  try {
+    const response = await fetch("/api/test-tenant", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const tenantSlug = String(data?.company?.slug || "").trim().toLowerCase();
+
+    if (tenantSlug === "yoga") {
+      applyYogaBranding();
+    }
+  } catch (_) {}
+};
+
 const header = document.querySelector(".site-header");
 const menuToggle = document.querySelector(".menu-toggle");
 const nav = document.querySelector(".main-nav");
@@ -452,3 +517,7 @@ setPrimaryMapsLink();
 handleToTopVisibility();
 trackPurchaseOnThankYou();
 loadPublicPlans();
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadTenantBranding();
+});
