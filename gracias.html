@@ -274,6 +274,7 @@
           Coordinar por WhatsApp
         </a>
         <a href="datos-iniciales.html" class="btn btn-ghost" id="onboarding-link">Completar datos iniciales</a>
+        <a href="portal.html" class="btn btn-ghost" id="member-portal-link">Gestionar o cancelar membresia</a>
       </div>
       <p class="next-step">Si aún no completaste tus datos iniciales, puedes hacerlo en el siguiente paso.</p>
 
@@ -321,12 +322,17 @@
         const priceEl = document.getElementById("plan-price");
         const includesEl = document.getElementById("plan-includes");
         const onboardingLink = document.getElementById("onboarding-link");
+        const memberPortalLink = document.getElementById("member-portal-link");
 
         if (onboardingLink && (onboardingEmail || companyId)) {
           const onboardingParams = new URLSearchParams();
           if (onboardingEmail) onboardingParams.set("email", onboardingEmail);
           if (companyId) onboardingParams.set("company_id", companyId);
           onboardingLink.href = `datos-iniciales.html?${onboardingParams.toString()}`;
+        }
+
+        if (memberPortalLink && onboardingEmail) {
+          memberPortalLink.href = `portal.html?email=${encodeURIComponent(onboardingEmail)}`;
         }
 
         if (!nameEl || !priceEl || !includesEl || !plan) return;

@@ -4,6 +4,7 @@ const express = require("express");
 
 const createCheckoutSession = require("./api/create-checkout-session");
 const createPortalSession = require("./api/create-portal-session");
+const publicCreatePortalSession = require("./api/public-create-portal-session");
 const stripeWebhook = require("./api/stripe-webhook");
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.post("/api/create-checkout-session", createCheckoutSession);
 app.post("/api/create-portal-session", createPortalSession);
+app.post("/api/public-create-portal-session", publicCreatePortalSession);
 
 app.use(express.static(path.join(__dirname)));
 

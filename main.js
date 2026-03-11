@@ -263,7 +263,7 @@ const applyTenantYogaExperience = (company = {}) => {
       <div class="footer-legal-links">
         <a href="terminos.html">Términos</a>
         <a href="privacidad.html">Privacidad</a>
-        <a href="portal.html">Gestionar membresía</a>
+        <a href="portal.html">Gestionar o cancelar membresía</a>
       </div>
     `;
   }
