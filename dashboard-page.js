@@ -1,5 +1,7 @@
 let csrfToken = null;
 let adminEmail = null;
+let allAlumnos = [];
+let activeFilter = "todos";
 
 const $ = (id) => document.getElementById(id);
 
@@ -16,6 +18,7 @@ const getStatusClass = (status) => {
   const normalized = String(status || "").toLowerCase();
   if (normalized === "active") return "status-pill is-active";
   if (normalized === "pending") return "status-pill is-pending";
+  if (normalized === "cancelled") return "status-pill is-cancelled";
   return "status-pill is-muted";
 };
 
@@ -57,6 +60,90 @@ const ensureAdminSession = async () => {
   return response.ok;
 };
 
+const updateSummary = (alumnos) => {
+  const rows = Array.isArray(alumnos) ? alumnos : [];
+  const activos = rows.filter((row) => String(row?.status || "").trim().toLowerCase() === "active").length;
+  const pendientes = rows.filter((row) => String(row?.status || "").trim().toLowerCase() === "pending").length;
+  const cancelados = rows.filter((row) => String(row?.status || "").trim().toLowerCase() === "cancelled").length;
+  const completos = rows.filter((row) => row?.onboarding_completed === true).length;
+
+  $("count-total").textContent = String(rows.length);
+  $("count-active").textContent = String(activos);
+  $("count-pending").textContent = String(pendientes);
+  $("count-cancelled").textContent = String(cancelados);
+  $("count-completed").textContent = String(completos);
+};
+
+const matchesFilter = (alumno, filterKey) => {
+  const status = String(alumno?.status || "").trim().toLowerCase();
+  const isComplete = alumno?.onboarding_completed === true;
+
+  if (filterKey === "activos") return status === "active";
+  if (filterKey === "pendientes") return status === "pending";
+  if (filterKey === "cancelados") return status === "cancelled";
+  if (filterKey === "completos") return isComplete;
+  if (filterKey === "incompletos") return !isComplete;
+  return true;
+};
+
+const getFilteredAlumnos = () => {
+  const searchValue = String($("search-input")?.value || "").trim().toLowerCase();
+
+  return allAlumnos.filter((alumno) => {
+    const fullName = String(alumno?.full_name || "").trim().toLowerCase();
+    const email = String(alumno?.email || "").trim().toLowerCase();
+    const matchesSearch = !searchValue || fullName.includes(searchValue) || email.includes(searchValue);
+    return matchesSearch && matchesFilter(alumno, activeFilter);
+  });
+};
+
+const renderRows = (alumnos) => {
+  const rows = Array.isArray(alumnos) ? alumnos : [];
+  $("dashboard-loading").hidden = true;
+  $("dashboard-error").hidden = true;
+
+  if (rows.length === 0) {
+    $("dashboard-table-wrap").hidden = true;
+    $("dashboard-empty").hidden = false;
+    $("dashboard-rows").innerHTML = "";
+    return;
+  }
+
+  $("dashboard-empty").hidden = true;
+  $("dashboard-rows").innerHTML = rows
+    .map((alumno) => {
+      const fullName = String(alumno?.full_name || "").trim() || "Sin nombre";
+      const onboardingText = alumno?.onboarding_completed === true ? "Completo" : "Pendiente";
+      const onboardingClass =
+        alumno?.onboarding_completed === true
+          ? "onboarding-pill is-done"
+          : "onboarding-pill is-waiting";
+      const statusLabel = formatStatusLabel(alumno?.status);
+      const planLabel = String(alumno?.plan || "").trim() || "Sin plan";
+
+      return `
+        <tr>
+          <td class="name-cell">
+            <strong>${fullName}</strong>
+            <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en datos iniciales"}</span>
+          </td>
+          <td>${alumno?.email || "-"}</td>
+          <td><span class="${getStatusClass(alumno?.status)}">${statusLabel}</span></td>
+          <td><span class="${onboardingClass}">${onboardingText}</span></td>
+          <td>${planLabel}</td>
+          <td>${formatDate(alumno?.created_at)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  $("dashboard-table-wrap").hidden = false;
+};
+
+const applyDashboardFilters = () => {
+  renderRows(getFilteredAlumnos());
+};
+
 const loadDashboard = async () => {
   $("dashboard-loading").hidden = false;
   $("dashboard-error").hidden = true;
@@ -85,45 +172,10 @@ const loadDashboard = async () => {
     }
 
     adminEmail = String(data?.admin_email || "").trim().toLowerCase() || null;
+    allAlumnos = Array.isArray(data?.alumnos) ? data.alumnos : [];
 
-    $("count-total").textContent = String(data?.counts?.total ?? 0);
-    $("count-completed").textContent = String(data?.counts?.onboarding_completed ?? 0);
-    $("count-pending").textContent = String(data?.counts?.pending ?? 0);
-
-    const alumnos = Array.isArray(data?.alumnos) ? data.alumnos : [];
-    $("dashboard-loading").hidden = true;
-
-    if (alumnos.length === 0) {
-      $("dashboard-empty").hidden = false;
-      return;
-    }
-
-    $("dashboard-rows").innerHTML = alumnos
-      .map((alumno) => {
-        const fullName = String(alumno?.full_name || "").trim() || "Sin nombre";
-        const onboardingText = alumno?.onboarding_completed === true ? "Si" : "No";
-        const onboardingClass =
-          alumno?.onboarding_completed === true
-            ? "onboarding-pill is-done"
-            : "onboarding-pill is-waiting";
-        const statusLabel = formatStatusLabel(alumno?.status);
-
-        return `
-          <tr>
-            <td class="name-cell">
-              <strong>${fullName}</strong>
-              <span>${alumno?.full_name ? "Alumno registrado" : "Completa su nombre en datos iniciales"}</span>
-            </td>
-            <td>${alumno?.email || "-"}</td>
-            <td><span class="${getStatusClass(alumno?.status)}">${statusLabel}</span></td>
-            <td><span class="${onboardingClass}">${onboardingText}</span></td>
-            <td>${formatDate(alumno?.created_at)}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    $("dashboard-table-wrap").hidden = false;
+    updateSummary(allAlumnos);
+    applyDashboardFilters();
   } catch (error) {
     $("dashboard-loading").hidden = true;
     $("dashboard-error").textContent = error?.message || "No se pudo cargar el dashboard";
@@ -152,6 +204,16 @@ const logout = async () => {
 };
 
 $("logout-btn")?.addEventListener("click", logout);
+$("search-input")?.addEventListener("input", applyDashboardFilters);
+document.querySelectorAll("[data-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    activeFilter = button.dataset.filter || "todos";
+    document.querySelectorAll("[data-filter]").forEach((item) => {
+      item.classList.toggle("is-active", item === button);
+    });
+    applyDashboardFilters();
+  });
+});
 window.addEventListener("pageshow", () => {
   loadDashboard();
 });

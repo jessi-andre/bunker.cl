@@ -125,6 +125,65 @@
         color: var(--dashboard-muted);
       }
 
+      .dashboard-toolbar {
+        display: grid;
+        gap: var(--space-3);
+        padding: 0 var(--space-4) var(--space-4);
+        border-bottom: 1px solid var(--dashboard-border);
+      }
+
+      .dashboard-search {
+        width: 100%;
+        height: 52px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 0 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--dashboard-text);
+        font: inherit;
+      }
+
+      .dashboard-search::placeholder {
+        color: rgba(255, 255, 255, 0.42);
+      }
+
+      .dashboard-search:focus {
+        outline: none;
+        border-color: rgba(168, 255, 62, 0.45);
+        box-shadow: 0 0 0 4px rgba(168, 255, 62, 0.08);
+      }
+
+      .dashboard-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+      }
+
+      .filter-chip {
+        min-height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        padding: 0.45rem 0.9rem;
+        background: rgba(255, 255, 255, 0.03);
+        color: rgba(255, 255, 255, 0.82);
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+      }
+
+      .filter-chip:hover,
+      .filter-chip:focus-visible {
+        border-color: rgba(168, 255, 62, 0.4);
+        color: #ffffff;
+      }
+
+      .filter-chip.is-active {
+        background: rgba(168, 255, 62, 0.14);
+        border-color: rgba(168, 255, 62, 0.3);
+        color: var(--dashboard-accent);
+      }
+
       .dashboard-table-wrap {
         overflow-x: auto;
       }
@@ -198,6 +257,11 @@
         color: #ffd166;
       }
 
+      .status-pill.is-cancelled {
+        background: rgba(255, 143, 143, 0.14);
+        color: #ff9e9e;
+      }
+
       .status-pill.is-muted,
       .onboarding-pill.is-waiting {
         background: rgba(255, 255, 255, 0.06);
@@ -247,7 +311,7 @@
         }
 
         .summary-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
         }
       }
     </style>
@@ -274,12 +338,20 @@
             <strong id="count-total">-</strong>
           </article>
           <article class="summary-card">
-            <span>Datos iniciales completos</span>
-            <strong id="count-completed">-</strong>
+            <span>Alumnos activos</span>
+            <strong id="count-active">-</strong>
           </article>
           <article class="summary-card">
-            <span>Pendientes</span>
+            <span>Alumnos pendientes</span>
             <strong id="count-pending">-</strong>
+          </article>
+          <article class="summary-card">
+            <span>Alumnos cancelados</span>
+            <strong id="count-cancelled">-</strong>
+          </article>
+          <article class="summary-card">
+            <span>Datos iniciales completos</span>
+            <strong id="count-completed">-</strong>
           </article>
         </section>
 
@@ -289,9 +361,27 @@
             <p>Estado actual y avance de datos iniciales de tus alumnos.</p>
           </div>
 
+          <div class="dashboard-toolbar">
+            <input
+              id="search-input"
+              class="dashboard-search"
+              type="search"
+              placeholder="Buscar alumno por nombre o correo"
+              autocomplete="off"
+            />
+            <div class="dashboard-filters" aria-label="Filtros de alumnos">
+              <button type="button" class="filter-chip is-active" data-filter="todos">Todos</button>
+              <button type="button" class="filter-chip" data-filter="activos">Activos</button>
+              <button type="button" class="filter-chip" data-filter="pendientes">Pendientes</button>
+              <button type="button" class="filter-chip" data-filter="cancelados">Cancelados</button>
+              <button type="button" class="filter-chip" data-filter="completos">Datos iniciales completos</button>
+              <button type="button" class="filter-chip" data-filter="incompletos">Datos iniciales pendientes</button>
+            </div>
+          </div>
+
           <p id="dashboard-loading" class="dashboard-loading">Cargando alumnos...</p>
           <p id="dashboard-error" class="dashboard-error" hidden></p>
-          <p id="dashboard-empty" class="dashboard-empty" hidden>Aun no hay alumnos cargados.</p>
+          <p id="dashboard-empty" class="dashboard-empty" hidden>No hay alumnos que coincidan con este filtro.</p>
 
           <div class="dashboard-table-wrap" id="dashboard-table-wrap" hidden>
             <table class="dashboard-table">
@@ -301,7 +391,8 @@
                   <th>Correo</th>
                   <th>Estado</th>
                   <th>Datos iniciales</th>
-                  <th>Creado</th>
+                  <th>Plan</th>
+                  <th>Fecha de registro</th>
                 </tr>
               </thead>
               <tbody id="dashboard-rows"></tbody>
