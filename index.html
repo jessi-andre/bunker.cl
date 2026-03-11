@@ -582,40 +582,69 @@
       }
 
       .yoga-class-grid,
-      .yoga-benefit-grid {
+      .yoga-benefit-grid,
+      .yoga-plan-grid {
         display: grid;
         gap: 1.25rem;
       }
 
       .yoga-class-card,
-      .yoga-benefit-card {
+      .yoga-benefit-card,
+      .yoga-plan-card {
         padding: 2rem;
         transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
       }
 
       .yoga-class-card h3,
-      .yoga-benefit-card h3 {
+      .yoga-benefit-card h3,
+      .yoga-plan-card h3 {
         margin-bottom: 0.8rem;
         font-size: 1.75rem;
         font-weight: 600;
       }
 
       .yoga-class-card p,
-      .yoga-benefit-card p {
+      .yoga-benefit-card p,
+      .yoga-plan-card p {
         margin: 0;
         color: rgba(40, 49, 38, 0.68);
         line-height: 1.75;
       }
 
       .yoga-class-card:hover,
-      .yoga-benefit-card:hover {
+      .yoga-benefit-card:hover,
+      .yoga-plan-card:hover {
         transform: translateY(-6px);
         border-color: rgba(94, 103, 83, 0.2);
         box-shadow: 0 24px 72px rgba(77, 86, 72, 0.14);
       }
 
-      .yoga-class-card .btn {
-        margin-top: 1.35rem;
+      .yoga-plan-price {
+        margin: 1rem 0 0.4rem;
+        font-size: 2rem;
+        font-family: "Cormorant Garamond", serif;
+        color: #283126;
+      }
+
+      .yoga-plan-price span {
+        font-size: 0.95rem;
+        color: rgba(40, 49, 38, 0.56);
+      }
+
+      .yoga-plan-features {
+        display: grid;
+        gap: 0.55rem;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .yoga-plan-features li {
+        color: rgba(40, 49, 38, 0.68);
+        font-size: 0.98rem;
+        line-height: 1.6;
+      }
+
+      .yoga-plan-card .btn {
+        margin-top: auto;
       }
 
       .yoga-trust-strip {
@@ -671,8 +700,13 @@
 
         .yoga-class-grid,
         .yoga-benefit-grid,
+        .yoga-plan-grid,
         .yoga-trust-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .yoga-plan-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
 
@@ -816,22 +850,86 @@
               <article class="yoga-class-card">
                 <h3>Hatha</h3>
                 <p>Respiración, foco y posturas sostenidas para encontrar estabilidad.</p>
-                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Vinyasa</h3>
                 <p>Secuencias fluidas para activar el cuerpo y mover energía con suavidad.</p>
-                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Yoga suave</h3>
                 <p>Prácticas amables para bajar revoluciones y soltar tensión.</p>
-                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Meditación</h3>
                 <p>Un espacio guiado para aquietar la mente y volver a ti.</p>
-                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-instructor" id="yoga-instructor">
+          <div class="container yoga-split-layout">
+            <div class="image-frame">
+              <img
+                src="https://images.unsplash.com/photo-1599447421416-3414500d18a5?auto=format&fit=crop&w=1400&q=80"
+                alt="Instructora de yoga en una práctica guiada"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="soft-panel yoga-split-copy">
+              <span class="section-overline">La instructora</span>
+              <h2>Una guía cercana para sostener tu práctica.</h2>
+              <p>
+                Clases guiadas con presencia, técnica y una mirada amable para que avances a tu ritmo y te sientas acompañado desde la primera sesión.
+              </p>
+              <a href="#yoga-plans" class="btn btn-ghost" data-scroll-to>Ver planes</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-plans" id="yoga-plans">
+          <div class="container">
+            <div class="section-heading centered">
+              <span class="section-overline">Membresías</span>
+              <h2>Elige tu plan y empieza este mes.</h2>
+              <p>
+                Suscripción mensual simple, sin complicaciones, para que elijas la práctica que mejor encaja contigo.
+              </p>
+            </div>
+            <div class="yoga-plan-grid">
+              <article class="yoga-plan-card">
+                <h3>Esencial</h3>
+                <p>Para construir una práctica constante con dos clases por semana.</p>
+                <p class="yoga-plan-price">$29.990 <span>/ mes</span></p>
+                <ul class="yoga-plan-features">
+                  <li>2 clases por semana</li>
+                  <li>Acceso a práctica guiada</li>
+                  <li>Seguimiento cercano</li>
+                </ul>
+                <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="starter">Elegir plan</button>
+              </article>
+              <article class="yoga-plan-card">
+                <h3>Equilibrio</h3>
+                <p>Un ritmo ideal para profundizar la práctica y sostener bienestar.</p>
+                <p class="yoga-plan-price">$49.990 <span>/ mes</span></p>
+                <ul class="yoga-plan-features">
+                  <li>3 clases por semana</li>
+                  <li>Práctica más consistente</li>
+                  <li>Espacio recomendado por el estudio</li>
+                </ul>
+                <button class="btn btn-accent plan-btn js-cta-inscribirme" data-plan="pro">Elegir plan</button>
+              </article>
+              <article class="yoga-plan-card">
+                <h3>Libre</h3>
+                <p>Para quienes quieren integrar el yoga como parte de su rutina diaria.</p>
+                <p class="yoga-plan-price">$79.990 <span>/ mes</span></p>
+                <ul class="yoga-plan-features">
+                  <li>Clases ilimitadas</li>
+                  <li>Mayor flexibilidad horaria</li>
+                  <li>Acceso total a la experiencia</li>
+                </ul>
+                <button class="btn btn-ghost plan-btn js-cta-inscribirme" data-plan="elite">Elegir plan</button>
               </article>
             </div>
           </div>
