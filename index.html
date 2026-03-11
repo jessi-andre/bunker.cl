@@ -590,6 +590,7 @@
       .yoga-class-card,
       .yoga-benefit-card {
         padding: 2rem;
+        transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
       }
 
       .yoga-class-card h3,
@@ -604,6 +605,44 @@
         margin: 0;
         color: rgba(40, 49, 38, 0.68);
         line-height: 1.75;
+      }
+
+      .yoga-class-card:hover,
+      .yoga-benefit-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(94, 103, 83, 0.2);
+        box-shadow: 0 24px 72px rgba(77, 86, 72, 0.14);
+      }
+
+      .yoga-class-card .btn {
+        margin-top: 1.35rem;
+      }
+
+      .yoga-trust-strip {
+        padding-top: 1.5rem;
+      }
+
+      .yoga-trust-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .yoga-trust-item {
+        padding: 1.4rem 1.5rem;
+        text-align: center;
+      }
+
+      .yoga-trust-item strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 2rem;
+        font-family: "Cormorant Garamond", serif;
+        color: #283126;
+      }
+
+      .yoga-trust-item span {
+        color: rgba(40, 49, 38, 0.66);
+        font-size: 0.95rem;
       }
 
       .yoga-cta-panel {
@@ -631,7 +670,8 @@
         }
 
         .yoga-class-grid,
-        .yoga-benefit-grid {
+        .yoga-benefit-grid,
+        .yoga-trust-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
         }
       }
@@ -687,7 +727,7 @@
               <span class="editorial-kicker">Yoga Estudio</span>
               <h1 class="editorial-title">Respira. Conecta. Fluye.</h1>
               <p class="editorial-copy">
-                Clases de yoga para volver a tu centro, bajar el ritmo y crear una práctica que acompañe tu bienestar todos los días.
+                Clases de yoga para bajar el ritmo, volver a tu centro y regalarte un espacio de bienestar real.
               </p>
               <div class="yoga-actions">
                 <a href="https://wa.me/56911111111" class="btn btn-accent btn-lg js-cta-whatsapp">Reservar clase</a>
@@ -696,7 +736,7 @@
             </div>
             <div class="image-frame tenant-yoga-hero-media">
               <img
-                src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80"
+                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1600&q=80"
                 alt="Práctica de yoga en un estudio luminoso"
                 loading="eager"
                 decoding="async"
@@ -712,9 +752,32 @@
                 <span class="section-overline">Práctica consciente</span>
                 <h2>Encuentra equilibrio en tu rutina.</h2>
                 <p>
-                  Clases de yoga diseñadas para reconectar con tu cuerpo, calmar la mente y recuperar energía con una experiencia serena, cuidada y contemporánea.
+                  Una práctica simple y cuidada para respirar mejor, soltar tensión y recuperar energía.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section yoga-trust-strip" id="yoga-trust">
+          <div class="container">
+            <div class="yoga-trust-grid">
+              <article class="soft-panel yoga-trust-item">
+                <strong>+250</strong>
+                <span>alumnos activos</span>
+              </article>
+              <article class="soft-panel yoga-trust-item">
+                <strong>+40</strong>
+                <span>clases por semana</span>
+              </article>
+              <article class="soft-panel yoga-trust-item">
+                <strong>5 años</strong>
+                <span>acompañando prácticas</span>
+              </article>
+              <article class="soft-panel yoga-trust-item">
+                <strong>4.9</strong>
+                <span>valoración promedio</span>
+              </article>
             </div>
           </div>
         </section>
@@ -733,7 +796,7 @@
               <span class="section-overline">About the studio</span>
               <h2>Un espacio para moverte con suavidad y presencia.</h2>
               <p>
-                Creamos un estudio íntimo, luminoso y acogedor donde cada clase invita a respirar mejor, habitar el cuerpo con calma y cultivar bienestar real.
+                Un estudio luminoso y sereno donde cada clase está diseñada para ayudarte a respirar mejor y sentirte bien.
               </p>
               <a href="#yoga-benefits" class="btn btn-ghost" data-scroll-to>Conocer más</a>
             </div>
@@ -746,25 +809,29 @@
               <span class="section-overline">Clases</span>
               <h2>Encuentra la práctica que acompaña tu momento.</h2>
               <p>
-                Una propuesta pensada para distintos ritmos, niveles y necesidades, siempre con guía cercana y una experiencia cuidada.
+                Elige la clase que mejor se adapta a tu energía y reserva en segundos.
               </p>
             </div>
             <div class="yoga-class-grid">
               <article class="yoga-class-card">
                 <h3>Hatha</h3>
-                <p>Posturas sostenidas, respiración y foco para cultivar estabilidad, presencia y técnica.</p>
+                <p>Respiración, foco y posturas sostenidas para encontrar estabilidad.</p>
+                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Vinyasa</h3>
-                <p>Secuencias fluidas para mover energía, fortalecer el cuerpo y encontrar ritmo interno.</p>
+                <p>Secuencias fluidas para activar el cuerpo y mover energía con suavidad.</p>
+                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Yoga suave</h3>
-                <p>Prácticas amables para soltar tensión, descansar mejor y volver al eje con calma.</p>
+                <p>Prácticas amables para bajar revoluciones y soltar tensión.</p>
+                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
               <article class="yoga-class-card">
                 <h3>Meditación</h3>
-                <p>Espacios guiados para aquietar la mente, bajar revoluciones y cultivar claridad.</p>
+                <p>Un espacio guiado para aquietar la mente y volver a ti.</p>
+                <a href="https://wa.me/56911111111" class="btn btn-ghost js-cta-whatsapp">Reservar clase</a>
               </article>
             </div>
           </div>
@@ -776,25 +843,25 @@
               <span class="section-overline">Bienestar</span>
               <h2>Una práctica que transforma cómo te sientes.</h2>
               <p>
-                Más que ejercicio, una pausa intencional para habitarte mejor y sostener una rutina con más balance.
+                Beneficios concretos que puedes sentir desde las primeras clases.
               </p>
             </div>
             <div class="yoga-benefit-grid">
               <article class="yoga-benefit-card">
                 <h3>Relajar el cuerpo</h3>
-                <p>Libera tensión acumulada y permite que tu cuerpo recupere soltura y descanso.</p>
+                <p>Libera tensión y devuelve ligereza al cuerpo.</p>
               </article>
               <article class="yoga-benefit-card">
                 <h3>Reducir el estrés</h3>
-                <p>Respiración, movimiento y foco para salir del modo automático y volver a la calma.</p>
+                <p>Respira mejor y baja revoluciones con una práctica guiada.</p>
               </article>
               <article class="yoga-benefit-card">
                 <h3>Mejorar flexibilidad</h3>
-                <p>Movilidad progresiva y consciente para ganar amplitud sin exigencia agresiva.</p>
+                <p>Gana movilidad con una práctica progresiva y consciente.</p>
               </article>
               <article class="yoga-benefit-card">
                 <h3>Conectar contigo</h3>
-                <p>Un momento solo para ti, para escuchar tu energía y crear una rutina más amable.</p>
+                <p>Haz una pausa real para escucharte y volver al eje.</p>
               </article>
             </div>
           </div>
@@ -806,7 +873,7 @@
               <span class="section-overline">Empieza hoy</span>
               <h2 class="editorial-title">Empieza tu práctica.</h2>
               <p class="editorial-copy" style="margin-left:auto;margin-right:auto;">
-                Reserva tu primera clase y descubre una experiencia de yoga contemporánea, cálida y pensada para acompañarte de verdad.
+                Reserva tu primera clase y descubre una práctica guiada, cálida y fácil de sostener.
               </p>
               <div class="yoga-actions" style="justify-content:center;">
                 <a href="https://wa.me/56911111111" class="btn btn-accent btn-lg js-cta-whatsapp">Reservar clase</a>
@@ -1322,8 +1389,9 @@
         const fadeTargets = [
           ...document.querySelectorAll('#servicios .card, #como-funciona .card, #equipo .card, #resultados .card'),
           ...document.querySelectorAll('#planes .card'),
+          ...document.querySelectorAll('.tenant-yoga-shell .soft-panel, .tenant-yoga-shell .image-frame, .tenant-yoga-shell .yoga-class-card, .tenant-yoga-shell .yoga-benefit-card, .tenant-yoga-shell .yoga-trust-item'),
           ...document.querySelectorAll('.faq-item'),
-          ...document.querySelectorAll('#servicios h2, #como-funciona h2, #equipo h2, #planes h2, #resultados h2, #faq h2, #ubicacion h2, #cta-final h2'),
+          ...document.querySelectorAll('#servicios h2, #como-funciona h2, #equipo h2, #planes h2, #resultados h2, #faq h2, #ubicacion h2, #cta-final h2, .tenant-yoga-shell h2, .tenant-yoga-shell .editorial-title'),
           ...document.querySelectorAll('.section-lead'),
           ...document.querySelectorAll('.section-label'),
           document.querySelector('.hero-stats'),
