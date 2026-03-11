@@ -22,5 +22,5 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Bunker local running on http://localhost:${PORT}`);
+  console.log(`MODU ejecutandose en local en http://localhost:${PORT}`);
 });

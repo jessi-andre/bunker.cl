@@ -1,4 +1,4 @@
--- FASE 2/3/4/6/7/8 hardening para Bunker
+-- FASE 2/3/4/6/7/8 de endurecimiento para MODU
 create extension if not exists pgcrypto;
 
 -- admin_sessions: columnas para seguridad avanzada

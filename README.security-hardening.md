@@ -1,6 +1,6 @@
-# Hardening de producción (Bunker)
+# Endurecimiento de produccion de MODU
 
-Este documento describe pruebas manuales y variables para las fases aplicadas sin cambiar arquitectura.
+Este documento describe pruebas manuales y variables para las fases aplicadas sin cambiar la arquitectura.
 
 ## Variables de entorno sugeridas
 
@@ -11,9 +11,9 @@ Este documento describe pruebas manuales y variables para las fases aplicadas si
 - `LOGIN_INVALIDATE_PREVIOUS_SESSIONS` (`true` | `false`)
 - `SESSION_CLEANUP_SECRET` (requerido para `/api/cleanup-sessions`)
 
-## Fase 1: Headers + CORS + cookie
+## Fase 1: Encabezados, CORS y cookies
 
-### Verificar headers de seguridad
+### Verificar encabezados de seguridad
 
 ```bash
 curl -i https://TU-DOMINIO/api/test-cookie
@@ -37,27 +37,27 @@ curl -i -X POST https://TU-DOMINIO/api/logout \
 
 Debe responder `403 Origin not allowed`.
 
-### Cookie HttpOnly/Secure
+### Verificar cookies HttpOnly y Secure
 
-Inicia sesión y revisa en DevTools -> Application -> Cookies:
+Inicia sesion y revisa en las herramientas del navegador, en Application -> Cookies:
 - `bunker_session` con `HttpOnly`
 - `SameSite=Lax`
-- `Secure` en producción
+- `Secure` en produccion
 
 ## Fase 2: Tenant por dominio
 
-- Inicia sesión en tenant A.
+- Inicia sesion en tenant A.
 - Repite request a endpoint autenticado usando host de tenant B.
 - Debe responder `403 Tenant mismatch`.
 
-## Fase 3: Sliding + cleanup
+## Fase 3: renovacion deslizante y limpieza
 
-### Sliding
+### Renovacion deslizante
 - Ajusta temporalmente `SESSION_SLIDING_THRESHOLD_SECONDS=999999`.
 - Llama `/api/test-cookie`.
-- Verifica en DB que `expires_at` se extendió y `last_seen_at` cambió.
+- Verifica en DB que `expires_at` se extendio y `last_seen_at` cambio.
 
-### Cleanup
+### Limpieza
 
 ```bash
 curl -i -X POST https://TU-DOMINIO/api/cleanup-sessions \
@@ -68,7 +68,7 @@ curl -i -X POST https://TU-DOMINIO/api/cleanup-sessions \
 
 Debe devolver `{ ok: true, deleted: N }`.
 
-## Fase 4: Revocación global
+## Fase 4: Revocacion global
 
 ### Revocar mis sesiones
 
@@ -80,7 +80,7 @@ curl -i -X POST https://TU-DOMINIO/api/revoke-my-sessions \
   -d '{}'
 ```
 
-### Revocar sesiones de compañía
+### Revocar sesiones de compania
 
 ```bash
 curl -i -X POST https://TU-DOMINIO/api/revoke-company-sessions \
@@ -102,7 +102,7 @@ curl -i https://TU-DOMINIO/api/csrf
 
 Devuelve `{ csrfToken }` y cookie `bunker_csrf`.
 
-### Mutación sin CSRF
+### Solicitud de cambio sin CSRF
 
 ```bash
 curl -i -X POST https://TU-DOMINIO/api/logout \
@@ -113,13 +113,13 @@ curl -i -X POST https://TU-DOMINIO/api/logout \
 
 Debe devolver `403`.
 
-## Fase 6: Rate limiting login
+## Fase 6: limite de intentos de acceso
 
-- Repite login con password incorrecta varias veces para el mismo `ip+email`.
-- Debe comenzar a devolver `429` por lockout.
-- Mensaje se mantiene uniforme: `Credenciales inválidas`.
+- Repite el inicio de sesion con una contrasena incorrecta varias veces para la misma combinacion de `ip+email`.
+- Debe comenzar a devolver `429` por bloqueo temporal.
+- Mensaje se mantiene uniforme: `Credenciales invalidas`.
 
-## Fase 7: Stripe + gating
+## Fase 7: Stripe y control de acceso por estado
 
 - Verifica en DB `company_subscriptions` tras webhook de:
   - `checkout.session.completed`
@@ -129,7 +129,7 @@ Debe devolver `403`.
   - `invoice.paid`
 - En estado no activo (`past_due`, `unpaid`, `canceled`), `/api/create-portal-session` debe devolver `402` con `code: PLAN_INACTIVE`.
 
-## Fase 8: Logging
+## Fase 8: registros
 
-- Revisar logs de Vercel: salida JSON con `request_id`, `route`, `company_id`, `admin_id`, `result`.
-- Revisar tabla opcional `audit_logs` para rechazos de tenant/csrf/login.
+- Revisar registros de Vercel: salida JSON con `request_id`, `route`, `company_id`, `admin_id`, `result`.
+- Revisar la tabla opcional `audit_logs` para rechazos de tenant/csrf/login.
