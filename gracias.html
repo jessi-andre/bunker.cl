@@ -314,6 +314,7 @@
         const params = new URLSearchParams(window.location.search);
         const planId = String(params.get("plan") || "").toLowerCase();
         const onboardingEmail = String(params.get("email") || "").trim().toLowerCase();
+        const companyId = String(params.get("company_id") || "").trim();
         const plan = catalog[planId] || null;
 
         const nameEl = document.getElementById("plan-name");
@@ -321,8 +322,11 @@
         const includesEl = document.getElementById("plan-includes");
         const onboardingLink = document.getElementById("onboarding-link");
 
-        if (onboardingLink && onboardingEmail) {
-          onboardingLink.href = `datos-iniciales.html?email=${encodeURIComponent(onboardingEmail)}`;
+        if (onboardingLink && (onboardingEmail || companyId)) {
+          const onboardingParams = new URLSearchParams();
+          if (onboardingEmail) onboardingParams.set("email", onboardingEmail);
+          if (companyId) onboardingParams.set("company_id", companyId);
+          onboardingLink.href = `datos-iniciales.html?${onboardingParams.toString()}`;
         }
 
         if (!nameEl || !priceEl || !includesEl || !plan) return;

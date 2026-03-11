@@ -4,12 +4,22 @@ const {
   getSupabaseAdmin,
   getCompanyByReqHost,
   parseCookies,
+  normalizeHost,
 } = require("../lib/_lib");
 
 const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
+const normalizeCompanyId = (value) => String(value || "").trim();
+
+const deriveCompanyNameFromHost = (host) => {
+  const normalizedHost = normalizeHost(host || "");
+  if (!normalizedHost) return "MODU Gym";
+  return normalizedHost.replace(/\./g, " ");
+};
 
 const getOnboardingEmail = (req) =>
   normalizeEmail(req?.query?.email || req?.query?.onboarding_email || req?.body?.email);
+const getRequestedCompanyId = (req) =>
+  normalizeCompanyId(req?.query?.company_id || req?.body?.company_id);
 
 module.exports = async function handler(req, res) {
   if (!validateRequestOrigin(req, res)) return;
@@ -34,15 +44,84 @@ module.exports = async function handler(req, res) {
   });
 
   try {
-      const company = await getCompanyByReqHost(req);
-      if (!company?.id) {
-        return send(404, { ok: false, step: "get_company", error: "COMPANY_NOT_FOUND" }, { stage: "company" });
+      const supabase = getSupabaseAdmin();
+      const requestHost = normalizeHost(req?.headers?.host || "");
+      const requestedCompanyId = getRequestedCompanyId(req);
+      let company = null;
+
+      if (requestedCompanyId) {
+        const { data: companyById, error: companyByIdError } = await supabase
+          .from("companies")
+          .select("id, name, domain, subscription_status")
+          .eq("id", requestedCompanyId)
+          .maybeSingle();
+
+        if (companyByIdError) {
+          return send(
+            500,
+            { ok: false, step: "get_company", error: companyByIdError.message || "DATABASE_QUERY_FAILED" },
+            { stage: "company_by_id" }
+          );
+        }
+
+        company = companyById || null;
       }
 
-      const supabase = getSupabaseAdmin();
+      if (!company?.id) {
+        company = await getCompanyByReqHost(req);
+      }
+
+      if (!company?.id) {
+        if (!requestHost) {
+          return send(404, { ok: false, step: "get_company", error: "COMPANY_NOT_FOUND" }, { stage: "company" });
+        }
+
+        const { data: createdCompany, error: createCompanyError } = await supabase
+          .from("companies")
+          .insert({
+            domain: requestHost,
+            name: deriveCompanyNameFromHost(requestHost),
+            subscription_status: "pending",
+          })
+          .select("id, name, domain, subscription_status")
+          .maybeSingle();
+
+        if (createCompanyError) {
+          console.log("save-onboarding: create company failed", {
+            request_host: requestHost,
+            error: createCompanyError.message || String(createCompanyError),
+          });
+        }
+
+        if (createdCompany?.id) {
+          company = createdCompany;
+        } else {
+          const { data: existingCompany, error: existingCompanyError } = await supabase
+            .from("companies")
+            .select("id, name, domain, subscription_status")
+            .eq("domain", requestHost)
+            .maybeSingle();
+
+          if (existingCompanyError) {
+            return send(
+              500,
+              { ok: false, step: "get_company", error: existingCompanyError.message || "DATABASE_QUERY_FAILED" },
+              { stage: "company_lookup" }
+            );
+          }
+
+          if (!existingCompany?.id) {
+            return send(404, { ok: false, step: "get_company", error: "COMPANY_NOT_FOUND" }, { stage: "company" });
+          }
+
+          company = existingCompany;
+        }
+      }
+
       const onboardingEmail = getOnboardingEmail(req);
       const alumnoIdentifier = {
         company_id: company.id,
+        requested_company_id: requestedCompanyId || null,
         email: onboardingEmail || null,
         email_source: req?.query?.email
           ? "query.email"

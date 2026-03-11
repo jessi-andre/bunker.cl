@@ -21,6 +21,14 @@ const deriveCompanyNameFromHost = (host) => {
   return normalizedHost.replace(/\./g, " ");
 };
 
+const getRequestBaseUrl = (req) => {
+  const host = normalizeHost(req?.headers?.host || "");
+  if (!host) return getBaseUrl();
+
+  const proto = String(req?.headers?.["x-forwarded-proto"] || "").trim().toLowerCase() || "https";
+  return `${proto}://${host}`;
+};
+
 module.exports = async (req, res) => {
   if (!validateRequestOrigin(req, res)) {
     return;
@@ -123,7 +131,7 @@ module.exports = async (req, res) => {
     } catch (_) {}
 
     const stripe = getStripe();
-    const baseUrl = getBaseUrl();
+    const baseUrl = getRequestBaseUrl(req);
     const companyDomain = normalizeHost(company?.domain || req?.headers?.host || "");
     const companyName = String(company?.name || "").trim();
     const onboardingMeta = {
@@ -141,7 +149,7 @@ module.exports = async (req, res) => {
       mode: "subscription",
       customer_email: normalizedEmail,
       line_items: [{ price, quantity: 1 }],
-      success_url: `${baseUrl}/gracias.html?ok=1&plan=${requestedPlan}&email=${encodeURIComponent(normalizedEmail)}`,
+      success_url: `${baseUrl}/gracias.html?ok=1&plan=${requestedPlan}&email=${encodeURIComponent(normalizedEmail)}&company_id=${encodeURIComponent(String(company.id))}`,
       cancel_url: `${baseUrl}/index.html#planes`,
       metadata: onboardingMeta,
       subscription_data: {

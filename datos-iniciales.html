@@ -368,11 +368,16 @@
         let isRedirecting = false;
         const onboardingEmail =
           String(pageParams.get("email") || pageParams.get("onboarding_email") || "").trim().toLowerCase();
+        const companyId = String(pageParams.get("company_id") || "").trim();
         const endpointUrl = new URL(endpoint, window.location.origin);
         const finalRedirectUrl = new URL("/coordinar.html", window.location.origin);
         if (onboardingEmail) {
           endpointUrl.searchParams.set("email", onboardingEmail);
           finalRedirectUrl.searchParams.set("email", onboardingEmail);
+        }
+        if (companyId) {
+          endpointUrl.searchParams.set("company_id", companyId);
+          finalRedirectUrl.searchParams.set("company_id", companyId);
         }
 
         function logDebug(label, payload) {
